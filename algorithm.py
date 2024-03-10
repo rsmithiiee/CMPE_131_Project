@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABSE_URI'] = 'sqlite:///insert_db_name_here.db'
 db = SQLAlchemy(app)
 
-#no idea what this does, just for practice , may be useful in the future
+#no idea what this does (likely creates an event in db with a description and timestamp), just for practice , may be useful in the future
 class WTFisThis(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   content = db.Column(db.String(100, nullable = False))
