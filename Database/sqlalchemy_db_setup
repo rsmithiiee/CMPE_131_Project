@@ -5,7 +5,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 import sqlalchemy as sa
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///C:/Users/spark/CMPE_131_Project/test_flask.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///official.db"
 
 class Base(DeclarativeBase):
     pass
