@@ -1,29 +1,30 @@
-from flask import Blueprint, request
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import select
-from sqlalchemy_db_setup import db, Users
+from flask import Flask, request
+import flask_sqlalchemy_db_setup
 
-login_bp = Blueprint('login', __name__)
-create_account_bp = Blueprint('create_account', __name__)
-
-@login_bp.route('/handle_login', method = ['POST'])
+app = Flask(__name__)
+@app.route('/handle_login', method = ['GET','POST'])
 def handle_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
-        user = db.session.execute(select(Users).where(Users.Username == username, Users.Password == password))
-
-        if(user):
-            return "login successful"
+        userObj = flask_sqlalchemy_db_setup.Users.query.get(username)
+        if userObj.Password == password and userObj is not None:
+            flask_sqlalchemy_db_setup.db.add_user(userObj)
+            flask_sqlalchemy_db_setup.db.session.commit()
+            return True
         else:
-            return "incorrect username or password"
-
-@create_account_bp.route('/handle_create_account', method = ['POST'])
+            return False
+@app.route('/handle_create_account', method = ['POST'])
 def handle_create_account():
     if request.method == 'POST':
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        user_id = request.form['user_id']
+        username = request.form['username']
+        email = request.form['email_address']
         password = request.form['password']
+
+        userObj = flask_sqlalchemy_db_setup.Users.query.get(username)
+
+        if userObj is None:
+            return True
+        else:
+            return False
     
