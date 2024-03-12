@@ -6,13 +6,13 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [title, setTitle] = useState("Title");
 
-  useEffect(() => {
-    fetch("http://localhost:8080/api/home")
-      .then((response) => response.json())
-      .then((data) => {
-        setTitle(data.message);
-      });
-  }, []);
+  // useEffect(() => {
+  //   fetch("http://localhost:8080/api/home")
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       setTitle(data.message);
+  //     });
+  // }, []);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-slate-600">
