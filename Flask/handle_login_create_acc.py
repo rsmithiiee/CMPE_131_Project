@@ -7,14 +7,14 @@ def handle_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        userObj = flask_sqlalchemy_db_setup.Users.query.get(username)
+        userObj = flask_sqlalchemy_db_setup.Users.query.filter_by(flask_sqlalchemy_db_setup.Username = username)
         if userObj.Password == password and userObj is not None:
             # flask_sqlalchemy_db_setup.db.add_user(userObj)
             # flask_sqlalchemy_db_setup.db.session.commit()
             return True
         else:
             return False
-@login_bp.route('/handle_create_account', method = ['POST'])
+@login_bp.route('/handle_create_account', method = ['GET','POST'])
 def handle_create_account():
     if request.method == 'POST':
         username = request.form['username']
@@ -27,7 +27,7 @@ def handle_create_account():
 
         if userObj is None:
             new_item = flask_sqlalchemy_db_setup.Users(None,first,last,username,password)
-            flask_sqlalchemy_db_setup.db.insert(new_item)
+            flask_sqlalchemy_db_setup.db.session.add(new_item)
             flask_sqlalchemy_db_setup.db.session.commit()
             return True
         else:
