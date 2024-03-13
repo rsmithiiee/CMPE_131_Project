@@ -35,14 +35,32 @@ def generateEvent(startTime, endTime):
     return
 
 #calendar_list should be a list of tuples with start and end times [ {s1, e1}, {s2, e2} , etc]
-def generateFreeTimes(calender_list):
-  for timeTuple in calendar_list:
+def generateFreeTimes(time_list):
+  
+  for timeTuple in time_list:
     #wtf format am I using here? strings? unix? I need to know
     start = timeTuple[0]
     end = timeTuple[1]
     #do math??? check to see if we cant just display occupied times instead
-  
+
   return render.template('/')#url redirect I think, or a render display go figure
 
+#use insertionsort since we have small datasets (<20)
+#sort by start time: works
+def sortTimeList(time_list):
+  len = 0
+  for i in time_list:
+    len = len + 1
+  i = 0
+  j = 0
+  pos = 0
+  for i in range(1, len, 1):
+    pos = time_list[i]
+    j = i -1
+    while (j >= 0 and time_list[j][0] > pos[0]):
+        time_list[j], time_list[j + 1] = time_list[j + 1], time_list[j]
+        j = j - 1
+    
+  
 if __name__ == "__main__":
   app.run(debug=True)
