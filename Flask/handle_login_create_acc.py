@@ -26,7 +26,7 @@ def handle_create_account():
         userObj = flask_sqlalchemy_db_setup.Users.query.get(username)
 
         if userObj is None:
-            new_item = User(None,first,last,username,password)
+            new_item = flask_sqlalchemy_db_setup.Users(None,first,last,username,password)
             flask_sqlalchemy_db_setup.db.insert(new_item)
             flask_sqlalchemy_db_setup.db.session.commit()
             return True
