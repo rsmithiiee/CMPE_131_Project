@@ -3,7 +3,6 @@ from flask_sqlalchemy_db_setup import db, Users
 # from flask_cors import CORS
 import sqlite3
 from sqlalchemy import select
-from argon2 import PasswordHasher
 
 #initialize flask instance
 app = Flask(__name__)
