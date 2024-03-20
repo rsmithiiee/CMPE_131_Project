@@ -40,7 +40,7 @@ def handle_create_account():
             db.session.add(user)
             db.session.commit()
         else:
-            return jsonify({'success': False, 'message': 'Could not create account'})
+            return jsonify({'success': False, 'message': 'Username taken'})
         
 
 if __name__ == "__main__":
