@@ -18,10 +18,13 @@ with app.app_context():
 @app.route('/login', methods = ['GET', 'POST'])
 def handle_login():
         if request.method == 'POST':
-            username = request.form['username']
-            password = request.form['password']
+            data = request.get_json()
+            username = data['username']
+            password = data['password']
             stmt = db.session.scalars(select(Users).where(Users.Username == username).where(Users.Password == password)).first()
-        if stmt is None:
+            ph = PasswordHasher
+            check_pass = ph.verify(stmt.Password, password)
+        if stmt is None or check_pass != True:
             return jsonify({'success': False, 'message': 'Login failed'})    
         else:
             return jsonify({'success': True, 'message': 'Login successful'})
@@ -29,18 +32,22 @@ def handle_login():
 @app.route('/create_account', methods = ['GET','POST'])
 def handle_create_account():
     if request.method == 'POST':
-        username = request.form['username']
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        password = request.form['password']
-
+        data = request.get_json()
+        first_name = data['first_name']
+        last_name = data['last_name']
+        username = data['username']
+        password = data['password']
+        ph = PasswordHasher()
+        hashed_password = ph.hash()
+        
         stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
         if stmt is None:
-            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = password)
+            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = hashed_password)
             db.session.add(user)
             db.session.commit()
+            return jsonify({'success': True, 'message': 'Account was created'})
         else:
-            return jsonify({'success': False, 'message': 'Username taken'})
+            return jsonify({'success': False, 'message': 'Could not create account'})
 
 @app.route('api/create_group', methods = ['GET','POST'])
 def create_group():
