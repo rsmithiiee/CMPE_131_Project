@@ -17,8 +17,9 @@ with app.app_context():
 @app.route('/login', methods = ['GET', 'POST'])
 def handle_login():
         if request.method == 'POST':
-            username = request.form['username']
-            password = request.form['password']
+            data = request.json
+            username = data.get('username')
+            password = data.get('password')
             stmt = db.session.scalars(select(Users).where(Users.Username == username).where(Users.Password == password)).first()
         if stmt is None:
             return jsonify({'success': False, 'message': 'Login failed'})    
@@ -28,10 +29,11 @@ def handle_login():
 @app.route('/create_account', methods = ['GET','POST'])
 def handle_create_account():
     if request.method == 'POST':
-        username = request.form['username']
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        password = request.form['password']
+        data = request.json
+        username = data.get('username')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        password = data.get('password')
 
         stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
         if stmt is None:
