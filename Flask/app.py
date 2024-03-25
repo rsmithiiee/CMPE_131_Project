@@ -18,10 +18,13 @@ with app.app_context():
 @app.route('/login', methods = ['GET', 'POST'])
 def handle_login():
         if request.method == 'POST':
-            username = request.form['username']
-            password = request.form['password']
+            data = request.get_json()
+            username = data['username']
+            password = data['password']
             stmt = db.session.scalars(select(Users).where(Users.Username == username).where(Users.Password == password)).first()
-        if stmt is None:
+            ph = PasswordHasher
+            check_pass = ph.verify(stmt.Password, password)
+        if stmt is None or check_pass != True:
             return jsonify({'success': False, 'message': 'Login failed'})    
         else:
             return jsonify({'success': True, 'message': 'Login successful'})
