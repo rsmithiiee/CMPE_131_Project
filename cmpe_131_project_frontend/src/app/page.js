@@ -1,9 +1,10 @@
 "use client";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "flowbite-react";
 import { useEffect, useState } from "react";
 
 export default function Home() {
+  const router = useRouter();
   const [title, setTitle] = useState("Title");
 
   // useEffect(() => {
@@ -34,21 +35,29 @@ export default function Home() {
             id="create-account-component"
             className="flex items-center justify-center w-1/2 h-full"
           >
-            <Link href="/create-account">
-              <Button id="create-account-button" className="bg-green-700">
-                Create Account
-              </Button>
-            </Link>
+            <Button
+              id="create-account-button"
+              className="bg-green-700"
+              onClick={() => {
+                router.push("/create-account");
+              }}
+            >
+              Create Account
+            </Button>
           </div>
           <div
             id="signin-component"
             className="flex items-center justify-center w-1/2 h-full"
           >
-            <Link href="/login">
-              <Button id="signin-button" className="bg-green-700">
-                Sign In
-              </Button>
-            </Link>
+            <Button
+              id="signin-button"
+              className="bg-green-700"
+              onClick={() => {
+                router.push("/login");
+              }}
+            >
+              Sign In
+            </Button>
           </div>
         </div>
       </div>
