@@ -2,65 +2,90 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import time
 import datetime
-
-#setup?
-app = Flask(__name__)
-#relative path ig? insert whatever file when needed (i.e user.db or group.db) <-this creates a db apparently
-app.config['SQLALCHEMY_DATABSE_URI'] = 'sqlite:///insert_db_name_here.db'
-db = SQLAlchemy(app)
-
-#no idea what this does (likely creates an event in db with a description and timestamp), just for practice , may be useful in the future
-class WTFisThis(db.Model):
-  id = db.Column(db.Integer, primary_key=True)
-  content = db.Column(db.String(100, nullable = False))
-  date_created = db.Column(db.DateTime(default.datetime.utcnow))
-  def __repr__ (self):
-    return '<Event %r>' % self.id
-
-
-#set a form+action on our frontend with the corresponding methods for event creation
-#prob gonna need more methods for group creation, friend adding, all that fun stuff
-@app.route("/", methods=['ADD_EVENT', 'DELETE_EVENT'])
-
-#RESOURCES
-#https://www.programiz.com/python-programming/time <-time lib documentation we porob need later\
-#https://www.programiz.com/python-programming/datetime/strptime <-also very useful
-def generateEvent(startTime, endTime):
-  if request.method=='ADD_EVENT':
-    dt_start = datetime.strptime(startTime, "%d/%m/%Y %H:%M:%S")#start time?
-    dt_end = datetime.strptime(endTime, "%d/%m/%Y %H:%M:%S")
-    return
-  else:
-    #check for event in db and delete, how tf do I find an event???
-    return
-
-#calendar_list should be a list of tuples with start and end times [ {s1, e1}, {s2, e2} , etc]
-def generateFreeTimes(time_list):
-  
-  for timeTuple in time_list:
-    #wtf format am I using here? strings? unix? I need to know
-    start = timeTuple[0]
-    end = timeTuple[1]
-    #do math??? check to see if we cant just display occupied times instead
-
-  return render.template('/')#url redirect I think, or a render display go figure
+#note: must use functions in this order: stringtodatetime, supersort, removeoverlap, freetimeinday
+from datetime import datetime
+def freeTimeInDay(time_list):
+   #convert from ISO 8601 to datetime obj and find length
+  free_time_list = [("section_start", "section_start")]#buffer var for handling later
+  #find gaps where event 1 end < event 2 start
+  length = len(time_list)
+  for i in range (1, length, 1):
+    if(time_list[i - 1][1] < time_list[i][0]):
+       free_time_list += [(time_list[i - 1][1], time_list[i][0])]
+  #end buffer
+  #free_time_list += [(time_list[len - 1][1], "section_end")]#end of section
+  free_time_list += [("section_end", "section_end")]
+  #return list may have overlapping times, can be optimized
+  return free_time_list
 
 #use insertionsort since we have small datasets (<20)
-#sort by start time: works
-def sortTimeList(time_list):
-  len = 0
-  for i in time_list:
-    len = len + 1
-  i = 0
-  j = 0
-  pos = 0
-  for i in range(1, len, 1):
+#sort by start/end time (list of tuples of datetimes)
+def sortByStartTime(time_list):
+  for i in range(1, len(time_list), 1):
     pos = time_list[i]
     j = i -1
     while (j >= 0 and time_list[j][0] > pos[0]):
         time_list[j], time_list[j + 1] = time_list[j + 1], time_list[j]
         j = j - 1
-    
-  
-if __name__ == "__main__":
-  app.run(debug=True)
+def sortByEndTime(time_list):
+   for i in range(1, len(time_list), 1):
+    pos = time_list[i]
+    j = i -1
+    while (j >= 0 and time_list[j][1] > pos[1] and time_list[j][0] >= pos[0]):
+        time_list[j], time_list[j + 1] = time_list[j + 1], time_list[j]
+        j = j - 1
+
+#for convenience
+def superSort(time_list):
+   sortByStartTime(time_list)
+   sortByEndTime(time_list)
+
+#converts all elements from iso string to datetime obj and return length of list
+def stringToDatetime(time_list):
+  timetuple = ("filler", "filler")
+  for timeTuple in time_list:
+    timetuple = (datetime.strptime(timeTuple[0] , "%Y-%m-%d %H:%M:%S.%f"), datetime.strptime(timeTuple[1] , "%Y-%m-%d %H:%M:%S.%f"))
+  return len(time_list)
+
+#remove overlapping times, requires sorted (start and end) datetime list and length of list
+def removeOverlap(time_list):
+  templist = []
+  templist += time_list
+  cleanedList = []
+  for i in range (0, len(templist) - 1, 1):
+      for j in range ( i + 1, len(templist), 1):
+        if(templist[i][0] <= templist[j][0]):
+          if(templist[i][1] >= templist[j][1] and templist[j][0] <= templist[i][1]):
+            cleanedList += [j] 
+          elif (templist[j][1] > templist[i][1] and templist[j][0] <= templist[i][1]):
+            templist[i] = (templist[i][0],templist[j][1])
+            cleanedList += [j]
+  offset = 0
+  list.sort(cleanedList)
+  cleanedList = list(set(cleanedList))
+  for i in cleanedList:
+    templist.remove(templist[i - offset])
+    offset += 1
+  return templist#uhhh ignore the naming yep
+
+#main for testing
+#def main():
+ #   time_list =[("2022-09-27 18:00:00.000", "2022-09-27 23:00:00.000"),("2022-09-27 00:00:00.000", "2022-09-27 10:00:00.000"),("2022-09-26 00:00:00.000", "2022-09-27 03:00:00.000"),("2023-09-28 04:00:00.000","2023-09-29 18:00:00.000"), ("2022-09-27 00:00:00.000", "2022-09-27 02:00:00.000"), ("2022-09-27 02:00:00.000", "2022-09-27 03:00:00.000")]
+  #  stringToDatetime(time_list)#works
+   # superSort(time_list)
+   # print("length of list: ", len(time_list))
+    #print("sorted list:")
+    #for i in time_list:
+    #    print(i[0], " , ", i[1])
+    #freeTimeList = removeOverlap(time_list)
+
+    #print sorted and formatted list out 
+    #print("doubles removed???")
+    #for i in freeTimeList:
+    #    print(i)
+    #print free time
+ #   freeTimeList = freeTimeInDay(freeTimeList)
+ #   for i in freeTimeList:
+#        print(i)
+#if __name__ == "__main__":
+#    main()
