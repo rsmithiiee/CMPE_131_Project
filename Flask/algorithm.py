@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import time
-import datetime
+
+
 #note: must use functions in this order: stringtodatetime, supersort, removeoverlap, freetimeinday
 from datetime import datetime
 def freeTimeInDay(time_list):
