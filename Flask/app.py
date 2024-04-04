@@ -80,5 +80,9 @@ def addToGroup():
             db.session.commit()
     return jsonify({'success': True, 'message': 'Group Info Updated'})
 
+@app.route('api/delete_user_group', methods = ['POST'])
+def removeFromGroup():
+    return jsonify({'success': True, 'message': 'User successfully deleted!'})
+
 if __name__ == "__main__":
     app.run(debug = True)
