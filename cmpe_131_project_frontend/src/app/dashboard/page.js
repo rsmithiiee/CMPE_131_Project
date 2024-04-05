@@ -1,3 +1,11 @@
+import Sidebar from "./sidebar-components/sidebar";
+import Calendar from "./calendar-components/calendar";
+
 export default function Dashboard() {
-  return <div>dashboard</div>;
+  return (
+    <div className="flex">
+      <Sidebar />
+      <Calendar />
+    </div>
+  );
 }
