@@ -24,7 +24,7 @@ def cmpEvent(timeStringTupleOne, timeStringTupleTwo):
    
 def freeTimeInDay(time_list):
    #convert from ISO 8601 to datetime obj and find length
-  free_time_list = [("section_start", "section_start")]#buffer var for handling later
+  free_time_list = []#buffer for handling later
   #find gaps where event 1 end < event 2 start
   length = len(time_list)
   for i in range (1, length, 1):
@@ -32,7 +32,6 @@ def freeTimeInDay(time_list):
        free_time_list += [(time_list[i - 1][1], time_list[i][0])]
   #end buffer
   #free_time_list += [(time_list[len - 1][1], "section_end")]#end of section
-  free_time_list += [("section_end", "section_end")]
   #return list may have overlapping times, can be optimized
   return free_time_list
 
