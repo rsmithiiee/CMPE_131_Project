@@ -22,9 +22,10 @@ def handle_login():
             username = data['username']
             password = data['password']
             stmt = db.session.scalars(select(Users).where(Users.Username == username).where(Users.Password == password)).first()
-            ph = PasswordHasher
-            check_pass = ph.verify(stmt.Password, password)
-        if stmt is None or check_pass != True:
+            # ph = PasswordHasher
+            # check_pass = ph.verify(stmt.Password, password)
+            # or check_pass != True
+        if stmt is None:
             return jsonify({'success': False, 'message': 'Login failed'})    
         else:
             return jsonify({'success': True, 'message': 'Login successful'})
@@ -37,12 +38,12 @@ def handle_create_account():
         last_name = data['last_name']
         username = data['username']
         password = data['password']
-        ph = PasswordHasher()
-        hashed_password = ph.hash()
+        # ph = PasswordHasher()
+        # hashed_password = ph.hash()
         
         stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
         if stmt is None:
-            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = hashed_password)
+            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = password)
             db.session.add(user)
             db.session.commit()
             return jsonify({'success': True, 'message': 'Account was created'})
@@ -56,11 +57,14 @@ def create_group():
         ID = data.get('user_id')
         group_name = data.get('group_name')
         group = Groups(Group_Name = group_name)
+        #TODO: Get group ID after it has been added to group Table
         db.session.add(group)
+        group_id = db.session.execute("SELECT last_insert_rowid()")
+        input = group_users_m2m(User_ID = ID, Group_ID = group_id)
+        db.session.add(input)
+        #db.session.execute("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (?,?)", (ID, group_ID))
         db.session.commit()
-        #TODO: finish code
-
-    return jsonify({'success': True, 'message': 'Group Created!'})
+    return jsonify({'success': True})
 
 @app.route('api/add_users_group', methods = ['GET','POST'])
 def addToGroup():
@@ -86,3 +90,4 @@ def removeFromGroup():
 
 if __name__ == "__main__":
     app.run(debug = True)
+
