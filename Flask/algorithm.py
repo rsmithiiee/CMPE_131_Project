@@ -1,9 +1,27 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-
-
 #note: must use functions in this order: stringtodatetime, supersort, removeoverlap, freetimeinday
 from datetime import datetime
+
+#FOR RYAN AYAYAYAYAYAYA
+#takes in 2 tuples of string dates in ISO. Returns true if no overlap, false if overlap
+def cmpEvent(timeStringTupleOne, timeStringTupleTwo):
+    dateTimeTupleOne = ("","")
+    dateTimeTupleTwo = ("", "")
+    dateTimeTupleOne = (datetime.strptime(timeStringTupleOne[0] , "%Y-%m-%d %H:%M:%S.%f"), datetime.strptime(timeStringTupleOne[1] , "%Y-%m-%d %H:%M:%S.%f"))
+    dateTimeTupleTwo = (datetime.strptime(timeStringTupleTwo[0] , "%Y-%m-%d %H:%M:%S.%f"), datetime.strptime(timeStringTupleTwo[1] , "%Y-%m-%d %H:%M:%S.%f"))
+    if(dateTimeTupleOne[0] <= dateTimeTupleTwo[0]):
+        if(dateTimeTupleOne[1] >= dateTimeTupleTwo[1] and dateTimeTupleTwo[0] <= dateTimeTupleOne[1]):
+            return False 
+        elif (dateTimeTupleTwo[1] > dateTimeTupleOne[1] and dateTimeTupleTwo[0] <= dateTimeTupleOne[1]):
+            return False
+    if(dateTimeTupleTwo[0] <= dateTimeTupleOne[0]):
+        if(dateTimeTupleTwo[1] >= dateTimeTupleOne[1] and dateTimeTupleOne[0] <= [1]):
+            return False 
+        elif (dateTimeTupleOne[1] > dateTimeTupleTwo[1] and dateTimeTupleOne[0] <= dateTimeTupleTwo[1]):
+            return False
+    return True
+   
 def freeTimeInDay(time_list):
    #convert from ISO 8601 to datetime obj and find length
   free_time_list = [("section_start", "section_start")]#buffer var for handling later
