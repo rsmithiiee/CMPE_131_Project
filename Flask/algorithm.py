@@ -30,9 +30,6 @@ def freeTimeInDay(time_list):
   for i in range (1, length, 1):
     if(time_list[i - 1][1] < time_list[i][0]):
        free_time_list += [(time_list[i - 1][1], time_list[i][0])]
-  #end buffer
-  #free_time_list += [(time_list[len - 1][1], "section_end")]#end of section
-  #return list may have overlapping times, can be optimized
   return free_time_list
 
 #use insertionsort since we have small datasets (<20)
