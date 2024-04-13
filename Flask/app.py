@@ -18,37 +18,39 @@ with app.app_context():
 @app.route('/login', methods = ['GET', 'POST'])
 def handle_login():
         if request.method == 'POST':
-            data = request.get_json()
-            username = data['username']
-            password = data['password']
-            stmt = db.session.scalars(select(Users).where(Users.Username == username).where(Users.Password == password)).first()
-            # ph = PasswordHasher
-            # check_pass = ph.verify(stmt.Password, password)
-            # or check_pass != True
-        if stmt is None:
-            return jsonify({'success': False, 'message': 'Login failed'})    
+            data = request.json
+            username = data.get('username')
+            password = data.get('password')
+
+            ph = PasswordHasher()
+            hashed_password = ph.hash(password)
+            stmt = db.session.scalars(select(Users).where(Users.Username == username).where(Users.Password == hashed_password)).first()
+            check_pass = ph.verify(stmt.Password, password)
+
+        if stmt is None or check_pass != True:
+            return jsonify({'success': False})    
         else:
-            return jsonify({'success': True, 'message': 'Login successful'})
+            return jsonify({'success': True})
     
 @app.route('/create_account', methods = ['GET','POST'])
 def handle_create_account():
     if request.method == 'POST':
-        data = request.get_json()
-        first_name = data['first_name']
-        last_name = data['last_name']
-        username = data['username']
-        password = data['password']
-        # ph = PasswordHasher()
-        # hashed_password = ph.hash()
+        data = request.json()
+        username = data.get('username')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        password = data.get('password')
         
         stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
         if stmt is None:
-            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = password)
+            ph = PasswordHasher()
+            hashed_password = ph.hash()
+            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = hashed_password)
             db.session.add(user)
             db.session.commit()
-            return jsonify({'success': True, 'message': 'Account was created'})
+            return jsonify({'success': False})
         else:
-            return jsonify({'success': False, 'message': 'Could not create account'})
+            return jsonify({'success': True})
 
 @app.route('api/create_group', methods = ['GET','POST'])
 def create_group():
