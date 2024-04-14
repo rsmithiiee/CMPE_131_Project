@@ -3,6 +3,7 @@ from flask_sqlalchemy_db_setup import db, Users
 from flask_cors import CORS
 import sqlite3
 from sqlalchemy import select
+from argon2 import PasswordHasher
 
 #initialize flask instance
 app = Flask(__name__)
@@ -21,29 +22,36 @@ def handle_login():
             data = request.json
             username = data.get('username')
             password = data.get('password')
-            stmt = db.session.scalars(select(Users).where(Users.Username == username).where(Users.Password == password)).first()
-        if stmt is None:
-            return jsonify({'success': False, 'message': 'Login failed'})    
+
+            ph = PasswordHasher()
+            hashed_password = ph.hash(password)
+            stmt = db.session.scalars(select(Users).where(Users.Username == username).where(Users.Password == hashed_password)).first()
+            check_pass = ph.verify(stmt.Password, password)
+
+        if stmt is None or check_pass != True:
+            return jsonify({'success': False})    
         else:
-            return jsonify({'success': True, 'message': 'Login successful'})
+            return jsonify({'success': True})
     
 @app.route('/create_account', methods = ['GET','POST'])
 def handle_create_account():
     if request.method == 'POST':
-        data = request.json
+        data = request.json()
         username = data.get('username')
         first_name = data.get('first_name')
         last_name = data.get('last_name')
         password = data.get('password')
-
+        
         stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
         if stmt is None:
-            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = password) #hashed_password
+            ph = PasswordHasher()
+            hashed_password = ph.hash()
+            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = hashed_password)
             db.session.add(user)
             db.session.commit()
-            return jsonify({'success': False, 'message': 'Username Not Taken'})
+            return jsonify({'success': False})
         else:
-            return jsonify({'success': True, 'message': 'Username taken'})
+            return jsonify({'success': True})
         
 
 if __name__ == "__main__":
