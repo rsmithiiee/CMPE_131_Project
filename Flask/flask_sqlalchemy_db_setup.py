@@ -33,13 +33,6 @@ class Groups(db.Model):
     Group_ID : Mapped[int] = mapped_column(primary_key = True)
     Group_Name : Mapped[str]
 
-class Group_Events(db.Model):
-    __tablename__ = "Group Events"
-    Event_ID : Mapped[int] = mapped_column(primary_key = True)
-    Group_ID : Mapped[int]
-    Start_Time : Mapped[str]
-    End_Time : Mapped[str]
-
 group_users_m2m = db.Table(
     "Group_Users",
     sa.Column("User_ID", sa.ForeignKey(Users.User_ID), primary_key = True),
