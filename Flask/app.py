@@ -93,13 +93,14 @@ def addToGroup():
         data = request.json
         name = data.get('username')
         user = db.session.scalars(select(Users).where(Users.Username == name)).first()
-        group = db.session.scalars(select(Groups).where(Groups.Group_Name == name)).first()
-        if user or group is None:
-            return jsonify({'success': False, 'message': 'User/Group not found!'})
+        if user is None:
+            return jsonify({'success': False, 'message': 'User not found!'})
         else:
             # TODO: How to retrieve group ID from DB
             user_id = user.USER_ID
-            group_id = group.GROUP_ID
+            group_id = db.session.execute("SELECT Group_ID from Group_Users WHERE User_ID = user_id", {"user_id": user_id}).first()
+            if group_id is None:
+                return jsonify({'success': False, 'message': 'Group not found!'})
             group_entry = group_users_m2m.insert().values(User_ID=user_id, Group_ID=group_id)
             db.session.add_all(group_entry)
             db.session.commit()
@@ -108,6 +109,16 @@ def addToGroup():
 
 @app.route('/api/delete_user_group', methods=['POST'])
 def removeFromGroup():
+    data = request.json
+    name = data.get('username')
+    user = db.session.scalars(select(Users).where(Users.Username == name)).first()
+    if user is None:
+        return jsonify({'success': False, 'message': 'User not found!'})
+    else :
+        user_ID = user.USER_ID
+        group_id = db.session.execute("SELECT Group_ID from Group_Users WHERE User_ID = user_id", {'user_id': user_ID}).first()
+        db.session.execute("DELETE FROM Group_Users WHERE User_ID = user_ID AND Group_ID = group_id", {'group_id': group_id}).first()
+        db.session.commit()
     return jsonify({'success': True, 'message': 'User successfully deleted!'})
 
 
