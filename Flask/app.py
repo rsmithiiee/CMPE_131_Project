@@ -16,7 +16,7 @@ with app.app_context():
     db.create_all()
 
 #Login and create account routes
-@app.route('/login', methods = ['GET', 'POST'])
+@app.route('/api/login', methods = ['GET', 'POST'])
 def handle_login():
         if request.method == 'POST':
             data = request.json
@@ -33,7 +33,7 @@ def handle_login():
         else:
             return jsonify({'success': True})
     
-@app.route('/create_account', methods = ['GET','POST'])
+@app.route('/api/create_account', methods = ['GET','POST'])
 def handle_create_account():
     if request.method == 'POST':
         data = request.json()
