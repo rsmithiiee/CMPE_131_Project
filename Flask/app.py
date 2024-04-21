@@ -100,11 +100,11 @@ def addToGroup():
             user_id = user.USER_ID
             group_id = db.session.execute("SELECT Group_ID from Group_Users WHERE User_ID = user_id", {"user_id": user_id}).first()
             if group_id is None:
-                return jsonify({'success': False, 'message': 'Group not found!'})
+                return jsonify({'success': False})
             group_entry = group_users_m2m.insert().values(User_ID=user_id, Group_ID=group_id)
             db.session.add_all(group_entry)
             db.session.commit()
-    return jsonify({'success': True, 'message': 'Group Info Updated'})
+    return jsonify({'success': True})
 
 
 @app.route('/api/delete_user_group', methods=['POST'])
@@ -113,13 +113,13 @@ def removeFromGroup():
     name = data.get('username')
     user = db.session.scalars(select(Users).where(Users.Username == name)).first()
     if user is None:
-        return jsonify({'success': False, 'message': 'User not found!'})
+        return jsonify({'success': False})
     else :
         user_ID = user.USER_ID
         group_id = db.session.execute("SELECT Group_ID from Group_Users WHERE User_ID = user_id", {'user_id': user_ID}).first()
         db.session.execute("DELETE FROM Group_Users WHERE User_ID = user_ID AND Group_ID = group_id", {'group_id': group_id}).first()
         db.session.commit()
-    return jsonify({'success': True, 'message': 'User successfully deleted!'})
+    return jsonify({'success': True})
 
 
 if __name__ == "__main__":
