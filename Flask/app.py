@@ -119,16 +119,10 @@ def delete_event():
 def create_group():
     if request.method == 'POST':
         data = request.json
-        ID = data.get('user_id')
         group_name = data.get('group_name')
         group = Groups(Group_Name=group_name)
+        enable_foreign_key_constraint()
         db.session.add(group)
-        group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
-        try:
-            enable_foreign_key_constraint()
-            db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"), {'User_ID': ID, 'Group_ID':group_id})
-        except (IntegrityError) as e:
-            return jsonify({'success':False, 'message':'Group already exists'})
         db.session.commit()
     return jsonify({'success': True})
 
