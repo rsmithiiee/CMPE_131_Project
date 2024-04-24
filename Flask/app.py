@@ -84,6 +84,7 @@ def create_group():
         data = request.json
         group_name = data.get('group_name')
         group = Groups(Group_Name=group_name)
+        enable_foreign_key_constraint()
         db.session.add(group)
         db.session.commit()
     return jsonify({'success': True})
