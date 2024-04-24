@@ -82,40 +82,20 @@ def handle_create_account():
 def create_group():
     if request.method == 'POST':
         data = request.json
-        ID = data.get('user_id')
         group_name = data.get('group_name')
         group = Groups(Group_Name=group_name)
         db.session.add(group)
-        group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
-        try:
-            enable_foreign_key_constraint()
-            db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"), {'User_ID': ID, 'Group_ID':group_id})
-        except (IntegrityError) as e:
-            return jsonify({'success':False, 'message':'Group already exists'})
         db.session.commit()
     return jsonify({'success': True})
 
 @app.route('/api/test', methods=['GET', 'POST'])
 def test_user():
         #data = request.json
-        name = 'hemanthkarnati'
-        group = 'bananas'
-        user = db.session.scalars(select(Users).where(Users.Username == name)).first()
-        if user is None:
-            return jsonify({'success': False})
-        else:
-            g = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
-            group_id = g.Group_ID
-            user_id = user.User_ID
-            if group_id is None:
-                return jsonify({'success': False})
-            try:
-                enable_foreign_key_constraint()
-                db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
-                                   {'User_ID': user_id, 'Group_ID': group_id})
-            except (IntegrityError) as e:
-                return jsonify({'success': False})
-            db.session.commit()
+        group_name = 'chickens'
+        group = Groups(Group_Name=group_name)
+        enable_foreign_key_constraint()
+        db.session.add(group)
+        db.session.commit()
         return jsonify({'success': True})
 
 
