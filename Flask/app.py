@@ -1,12 +1,12 @@
 from sqlite3 import IntegrityError
 from flask import Flask, request, jsonify
-from flask_sqlalchemy_db_setup import db, Users, Groups, group_users_m2m
+from flask_sqlalchemy_db_setup import db, Users, Groups, Group_Users_m2m
 # from flask_cors import CORS
 import sqlite3
 from sqlalchemy import select, text
 from flask import Flask, request, jsonify, sessions
 from flask_sqlalchemy_db_setup import db, Users, User_Events, Groups
-from flask_cors import CORS
+#from flask_cors import CORS
 from sqlalchemy import select, between, or_, update, delete, text
 from argon2 import PasswordHasher
 
@@ -105,7 +105,7 @@ def test_user():
         user_ID = user.User_ID
         #group = Groups(Group_Name="group_name")
         #group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
-        group = db.session.scalars(select(Groups).where(Groups.group_name == "bananas")).first()
+        group = db.session.scalars(select(Groups).where(Groups.Group_Name == "bananas")).first()
         group_id = group.Group_ID
         db.session.execute(text("DELETE FROM Group_Users WHERE User_ID=:user_id AND Group_ID = :group_id"), {'user_id': user_ID, 'group_id': group_id})
         db.session.commit()
@@ -118,11 +118,13 @@ def addToGroup():
     if request.method == 'POST':
         data = request.json
         name = data.get('username')
+        group = data.get('group_name')
         user = db.session.scalars(select(Users).where(Users.Username == name)).first()
         if user is None:
             return jsonify({'success': False})
         else:
-            group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
+            g = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
+            group_id = g.Group_ID
             user_id = user.User_ID
             if group_id is None:
                 return jsonify({'success': False})
@@ -135,17 +137,19 @@ def addToGroup():
     return jsonify({'success': True})
 
 
-@app.route('/api/delete_user_group', methods=['POST'])
+@app.route('/api/delete_user_group', methods=['GET', 'POST'])
 def removeFromGroup():
     data = request.json
     name = data.get('username')
+    group = data.get('group_name')
     user = db.session.scalars(select(Users).where(Users.Username == name)).first()
     if user is None:
         return jsonify({'success': False})
     else :
-        user_ID = user.USER_ID
-        group_id = db.session.execute("SELECT Group_ID from Group_Users WHERE User_ID = user_id", {'user_id': user_ID}).first()
-        db.session.execute("DELETE FROM Group_Users WHERE User_ID = user_ID AND Group_ID = group_id", {'group_id': group_id}).first()
+        user_ID = user.User_ID
+        group = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
+        group_id = group.Group_ID
+        db.session.execute(text("DELETE FROM Group_Users WHERE User_ID=:user_id AND Group_ID = :group_id"), {'user_id': user_ID, 'group_id': group_id})
         db.session.commit()
     return jsonify({'success': True})
 
@@ -162,7 +166,7 @@ def create_event():
         calendar_event = db.session.scalars(select(User_Events).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
 
         if calendar_event is None:
-            enable_foreign_key_constraint()
+            #enable_foreign_key_constraint()
             event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
             db.session.add(event_to_add)
             db.session.commit()
