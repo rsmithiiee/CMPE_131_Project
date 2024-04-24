@@ -105,6 +105,7 @@ def delete_event():
         event_id = data.get("event_id")
         user_id = data.get("user_id")
 
+    enable_foreign_key_constraint()
     delete_event = db.session.execute(delete(User_Events).where(User_Events.User_ID == user_id).where(User_Events.Event_ID == event_id))
 
     if delete_event.rowcount == 0:
