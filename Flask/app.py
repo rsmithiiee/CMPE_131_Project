@@ -113,6 +113,44 @@ def delete_event():
     else:
         db.session.commit()
         return jsonify({'success' : True})
+
+
+@app.route('/api/create_group', methods=['GET', 'POST'])
+def create_group():
+    if request.method == 'POST':
+        data = request.json
+        ID = data.get('user_id')
+        group_name = data.get('group_name')
+        group = Groups(Group_Name=group_name)
+        db.session.add(group)
+        group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
+        try:
+            db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"), {'User_ID': ID, 'Group_ID':group_id})
+        except (IntegrityError) as e:
+            return jsonify({'success':False, 'message':'Group already exists'})
+        db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/add_users_group', methods=['GET', 'POST'])
+def addToGroup():
+    if request.method == 'POST':
+        data = request.json
+        name = data.get('username')
+        user = db.session.scalars(select(Users).where(Users.Username == name)).first()
+        if user is None:
+            return jsonify({'success': False})
+        else:
+            group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
+            user_id = user.User_ID
+            if group_id is None:
+                return jsonify({'success': False})
+            try:
+                db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
+                                   {'User_ID': user_id, 'Group_ID': group_id})
+            except (IntegrityError) as e:
+                return jsonify({'success': False})
+            db.session.commit()
+    return jsonify({'success': True})
         
 
 if __name__ == "__main__":
