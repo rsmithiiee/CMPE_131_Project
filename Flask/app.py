@@ -116,6 +116,21 @@ def edit_event():
     else:
         db.session.commit()
         return jsonify({'success': True})
+
+@app.route('/api/delete_event', methods = ['GET', 'POST'])
+def delete_event():
+    if request.method == 'POST':
+        data = request.json()
+        event_id = data.get("event_id")
+        user_id = data.get("user_id")
+
+    delete_event = db.session.execute(delete(User_Events).where(User_Events.User_ID == user_id).where(User_Events.Event_ID == event_id))
+
+    if delete_event.rowcount == 0:
+        return jsonify({'success' : False})
+    else:
+        db.session.commit()
+        return jsonify({'success' : True})
         
 
 if __name__ == "__main__":
