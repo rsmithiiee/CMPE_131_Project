@@ -136,11 +136,13 @@ def addToGroup():
     if request.method == 'POST':
         data = request.json
         name = data.get('username')
+        group = data.get('group_name')
         user = db.session.scalars(select(Users).where(Users.Username == name)).first()
         if user is None:
             return jsonify({'success': False})
         else:
-            group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
+            g = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
+            group_id = g.Group_ID
             user_id = user.User_ID
             if group_id is None:
                 return jsonify({'success': False})
