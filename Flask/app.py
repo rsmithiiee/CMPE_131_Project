@@ -125,6 +125,7 @@ def create_group():
         db.session.add(group)
         group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
         try:
+            enable_foreign_key_constraint()
             db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"), {'User_ID': ID, 'Group_ID':group_id})
         except (IntegrityError) as e:
             return jsonify({'success':False, 'message':'Group already exists'})
@@ -147,6 +148,7 @@ def addToGroup():
             if group_id is None:
                 return jsonify({'success': False})
             try:
+                enable_foreign_key_constraint()
                 db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
                                    {'User_ID': user_id, 'Group_ID': group_id})
             except (IntegrityError) as e:
