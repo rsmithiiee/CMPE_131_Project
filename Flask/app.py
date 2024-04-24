@@ -1,9 +1,7 @@
 from sqlite3 import IntegrityError
 from flask import Flask, request, jsonify
 from flask_sqlalchemy_db_setup import db, Users, Groups, Group_Users_m2m
-# from flask_cors import CORS
 import sqlite3
-from sqlalchemy import select, text
 from flask import Flask, request, jsonify, sessions
 from flask_sqlalchemy_db_setup import db, Users, User_Events, Groups
 #from flask_cors import CORS
@@ -21,6 +19,9 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+
+def enable_foreign_key_constraint():
+    db.session.execute(text("PRAGMA foreign_keys = ON"))
 
 # Login and create account routes
 @app.route('/api/login', methods=['GET', 'POST'])
@@ -87,6 +88,7 @@ def create_group():
         db.session.add(group)
         group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
         try:
+            enable_foreign_key_constraint()
             db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"), {'User_ID': ID, 'Group_ID':group_id})
         except (IntegrityError) as e:
             return jsonify({'success':False, 'message':'Group already exists'})
@@ -95,21 +97,26 @@ def create_group():
 
 @app.route('/api/test', methods=['GET', 'POST'])
 def test_user():
-    #data = request.json
-    #name = data.get('username')
-    name = "hemanthkarnati"
-    user = db.session.scalars(select(Users).where(Users.Username == name)).first()
-    if user is None:
-        return jsonify({'success': False})
-    else:
-        user_ID = user.User_ID
-        #group = Groups(Group_Name="group_name")
-        #group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
-        group = db.session.scalars(select(Groups).where(Groups.Group_Name == "bananas")).first()
-        group_id = group.Group_ID
-        db.session.execute(text("DELETE FROM Group_Users WHERE User_ID=:user_id AND Group_ID = :group_id"), {'user_id': user_ID, 'group_id': group_id})
-        db.session.commit()
-    return jsonify({'success': True, 'message': group_id})
+        #data = request.json
+        name = 'hemanthkarnati'
+        group = 'bananas'
+        user = db.session.scalars(select(Users).where(Users.Username == name)).first()
+        if user is None:
+            return jsonify({'success': False})
+        else:
+            g = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
+            group_id = g.Group_ID
+            user_id = user.User_ID
+            if group_id is None:
+                return jsonify({'success': False})
+            try:
+                enable_foreign_key_constraint()
+                db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
+                                   {'User_ID': user_id, 'Group_ID': group_id})
+            except (IntegrityError) as e:
+                return jsonify({'success': False})
+            db.session.commit()
+        return jsonify({'success': True})
 
 
 
@@ -129,6 +136,7 @@ def addToGroup():
             if group_id is None:
                 return jsonify({'success': False})
             try:
+                enable_foreign_key_constraint()
                 db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
                                    {'User_ID': user_id, 'Group_ID': group_id})
             except (IntegrityError) as e:
@@ -166,7 +174,7 @@ def create_event():
         calendar_event = db.session.scalars(select(User_Events).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
 
         if calendar_event is None:
-            #enable_foreign_key_constraint()
+            enable_foreign_key_constraint()
             event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
             db.session.add(event_to_add)
             db.session.commit()
