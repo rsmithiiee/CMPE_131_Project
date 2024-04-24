@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify
-from flask_sqlalchemy_db_setup import db, Users
+from flask_sqlalchemy_db_setup import db, Users, User_Events, Groups, Group_Users_m2m
 from flask_cors import CORS
-import sqlite3
-from sqlalchemy import select
+from sqlalchemy import select, between, or_, update, delete, text
 from argon2 import PasswordHasher
 
 #initialize flask instance
@@ -14,6 +13,11 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///official.db"
 db.init_app(app)
 with app.app_context():
     db.create_all()
+    
+#foreign key function to enable foreign key constraint
+#call before each connection to database where you are inserting, updating, or deleting
+def enable_foreign_key_constraint():
+    db.session.execute(text("PRAGMA foreign_keys = ON"))
 
 #Login and create account routes
 @app.route('/api/login', methods = ['GET', 'POST'])
@@ -52,6 +56,27 @@ def handle_create_account():
             return jsonify({'success': False})
         else:
             return jsonify({'success': True})
+
+#calendar event routes
+@app.route('/api/create_event', methods = ['GET', 'POST'])
+def create_event():
+        if request.method == 'POSt':
+            data = request.json
+            user_id = data.get['user_id']
+            event_name = data.get['event_name']
+            start_time = data.get['start_time']
+            end_time = data.get['end_time']
+
+        calendar_event = db.session.scalars(select(User_Events).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
+
+        if calendar_event is None:
+            enable_foreign_key_constraint()
+            event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
+            db.session.add(event_to_add)
+            db.session.commit()
+            return jsonify({'success': True})    
+        else:
+            return jsonify({'success': False})
         
 
 if __name__ == "__main__":
