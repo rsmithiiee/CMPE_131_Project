@@ -1,8 +1,10 @@
+from sqlite3 import IntegrityError
+
 from flask import Flask, request, jsonify
 from flask_sqlalchemy_db_setup import db, Users, Groups, group_users_m2m
 # from flask_cors import CORS
 import sqlite3
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 # from argon2 import PasswordHasher
 
@@ -79,12 +81,32 @@ def create_group():
         group_name = data.get('group_name')
         group = Groups(Group_Name=group_name)
         db.session.add(group)
-        group_id = db.session.execute("SELECT last_insert_rowid()")
-        input = group_users_m2m(User_ID=ID, Group_ID=group_id)
-        db.session.add(input)
-        # db.session.execute("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (?,?)", (ID, group_ID))
+        group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
+        try:
+            db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"), {'User_ID': ID, 'Group_ID':group_id})
+        except (IntegrityError) as e:
+            return jsonify({'success':False, 'message':'Group already exists'})
         db.session.commit()
     return jsonify({'success': True})
+
+@app.route('/api/test', methods=['GET', 'POST'])
+def test_user():
+    #data = request.json
+    #name = data.get('username')
+    name = "hemanthkarnati"
+    user = db.session.scalars(select(Users).where(Users.Username == name)).first()
+    if user is None:
+        return jsonify({'success': False})
+    else:
+        user_ID = user.User_ID
+        #group = Groups(Group_Name="group_name")
+        #group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
+        group = db.session.scalars(select(Groups).where(Groups.group_name == "bananas")).first()
+        group_id = group.Group_ID
+        db.session.execute(text("DELETE FROM Group_Users WHERE User_ID=:user_id AND Group_ID = :group_id"), {'user_id': user_ID, 'group_id': group_id})
+        db.session.commit()
+    return jsonify({'success': True, 'message': group_id})
+
 
 
 @app.route('/api/add_users_group', methods=['GET', 'POST'])
@@ -94,15 +116,17 @@ def addToGroup():
         name = data.get('username')
         user = db.session.scalars(select(Users).where(Users.Username == name)).first()
         if user is None:
-            return jsonify({'success': False, 'message': 'User not found!'})
+            return jsonify({'success': False})
         else:
-            # TODO: How to retrieve group ID from DB
-            user_id = user.USER_ID
-            group_id = db.session.execute("SELECT Group_ID from Group_Users WHERE User_ID = user_id", {"user_id": user_id}).first()
+            group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
+            user_id = user.User_ID
             if group_id is None:
                 return jsonify({'success': False})
-            group_entry = group_users_m2m.insert().values(User_ID=user_id, Group_ID=group_id)
-            db.session.add_all(group_entry)
+            try:
+                db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
+                                   {'User_ID': user_id, 'Group_ID': group_id})
+            except (IntegrityError) as e:
+                return jsonify({'success': False})
             db.session.commit()
     return jsonify({'success': True})
 
