@@ -49,8 +49,9 @@ def handle_create_account():
         stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
         if stmt is None:
             ph = PasswordHasher()
-            hashed_password = ph.hash()
+            hashed_password = ph.hash(password)
             user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = hashed_password)
+            enable_foreign_key_constraint()
             db.session.add(user)
             db.session.commit()
             return jsonify({'success': False})
@@ -77,6 +78,44 @@ def create_event():
             return jsonify({'success': True})    
         else:
             return jsonify({'success': False})
+@app.route('/api/create_event', methods = ['GET', 'POST'])
+def create_event():
+        if request.method == 'POST':
+            data = request.json
+            user_id = data.get('user_id')
+            event_name = data.get('event_name')
+            start_time = data.get('start_time')
+            end_time = data.get('end_time')
+
+        calendar_event = db.session.scalars(select(User_Events).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
+
+        if calendar_event is None:
+            enable_foreign_key_constraint()
+            event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
+            db.session.add(event_to_add)
+            db.session.commit()
+            return jsonify({'success': True})    
+        else:
+            return jsonify({'success': False})
+
+@app.route('/api/edit_event', methods = ['GET', 'POST'])
+def edit_event():
+    if request.method == 'POST':
+        data = request.json()
+        event_id = data.get("event_id")
+        user_id = data.get("user_id")
+        event_name = data.get("event_name")
+        start_time = data.get("start_time")
+        end_time = data.get("end_time")
+
+    enable_foreign_key_constraint()
+    event = db.session.execute(update(User_Events).where(User_Events.Event_ID == event_id).where(User_Events.User_ID == user_id).values(Event_Name = event_name, Start_Time = start_time, End_Time = end_time))
+
+    if event.rowcount == 0:
+        return jsonify({'success': False})    
+    else:
+        db.session.commit()
+        return jsonify({'success': True})
         
 
 if __name__ == "__main__":
