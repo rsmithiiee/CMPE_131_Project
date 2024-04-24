@@ -58,26 +58,7 @@ def handle_create_account():
         else:
             return jsonify({'success': True})
 
-#calendar event routes
-@app.route('/api/create_event', methods = ['GET', 'POST'])
-def create_event():
-        if request.method == 'POSt':
-            data = request.json
-            user_id = data.get['user_id']
-            event_name = data.get['event_name']
-            start_time = data.get['start_time']
-            end_time = data.get['end_time']
-
-        calendar_event = db.session.scalars(select(User_Events).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
-
-        if calendar_event is None:
-            enable_foreign_key_constraint()
-            event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
-            db.session.add(event_to_add)
-            db.session.commit()
-            return jsonify({'success': True})    
-        else:
-            return jsonify({'success': False})
+#calendar event routes          
 @app.route('/api/create_event', methods = ['GET', 'POST'])
 def create_event():
         if request.method == 'POST':
