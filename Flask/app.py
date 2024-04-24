@@ -1,10 +1,14 @@
 from sqlite3 import IntegrityError
-
 from flask import Flask, request, jsonify
 from flask_sqlalchemy_db_setup import db, Users, Groups, group_users_m2m
 # from flask_cors import CORS
 import sqlite3
 from sqlalchemy import select, text
+from flask import Flask, request, jsonify, sessions
+from flask_sqlalchemy_db_setup import db, Users, User_Events, Groups
+from flask_cors import CORS
+from sqlalchemy import select, between, or_, update, delete, text
+from argon2 import PasswordHasher
 
 # from argon2 import PasswordHasher
 
@@ -72,7 +76,7 @@ def handle_create_account():
         else:
             return jsonify({'success': True})
 
-
+#group handling
 @app.route('/api/create_group', methods=['GET', 'POST'])
 def create_group():
     if request.method == 'POST':
@@ -145,6 +149,26 @@ def removeFromGroup():
         db.session.commit()
     return jsonify({'success': True})
 
+#event handling
+@app.route('/api/create_event', methods = ['GET', 'POST'])
+def create_event():
+        if request.method == 'POSt':
+            data = request.json
+            user_id = data.get['user_id']
+            event_name = data.get['event_name']
+            start_time = data.get['start_time']
+            end_time = data.get['end_time']
+
+        calendar_event = db.session.scalars(select(User_Events).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
+
+        if calendar_event is None:
+            enable_foreign_key_constraint()
+            event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
+            db.session.add(event_to_add)
+            db.session.commit()
+            return jsonify({'success': True})    
+        else:
+            return jsonify({'success': False})
 
 if __name__ == "__main__":
     app.run(debug=True)
