@@ -20,7 +20,7 @@ export default function Topbar() {
             className=" bg-white text-black text-md rounded-lg w-full p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white "
           >
             <option value="day">Day</option>
-            <option selected="week">Week</option>
+            <option defaultValue="week">Week</option>
             <option value="month">Month</option>
             <option value="year">Year</option>
           </select>
