@@ -119,10 +119,15 @@ def delete_event():
 def create_group():
     if request.method == 'POST':
         data = request.json
+        user_id = data.get('user_id')
         group_name = data.get('group_name')
         group = Groups(Group_Name=group_name)
         enable_foreign_key_constraint()
         db.session.add(group)
+        group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
+        db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
+                           {'User_ID': user_id, 'Group_ID': group_id})
+
         db.session.commit()
     return jsonify({'success': True})
 
