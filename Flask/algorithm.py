@@ -3,6 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 #note: must use functions in this order: stringtodatetime, supersort, removeoverlap, freetimeinday
 from datetime import datetime
 
+def superfn(time_list):
+    stringtodatetime(time_list)
+    supersort(time_list)
+    removeOverlap(time_list)
+    return freeTimeInDay(time_list)
 #FOR RYAN AYAYAYAYAYAYA
 #takes in 2 tuples of string dates in ISO. Returns true if no overlap, false if overlap
 def cmpEvent(timeStringTupleOne, timeStringTupleTwo):
