@@ -13,7 +13,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///official.db"
 db.init_app(app)
 with app.app_context():
     db.create_all()
-    
+
 #foreign key function to enable foreign key constraint
 #call before each connection to database where you are inserting, updating, or deleting
 def enable_foreign_key_constraint():
@@ -27,20 +27,19 @@ def handle_login():
             username = data.get('username')
             password = data.get('password')
 
-            ph = PasswordHasher()
-            hashed_password = ph.hash(password)
-            stmt = db.session.scalars(select(Users).where(Users.Username == username).where(Users.Password == hashed_password)).first()
-            check_pass = ph.verify(stmt.Password, password)
-
+        ph = PasswordHasher()
+        stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
+        check_pass = ph.verify(stmt.Password, password)
+            
         if stmt is None or check_pass != True:
-            return jsonify({'success': False})    
+            return jsonify({'success' : False})    
         else:
             return jsonify({'success': True})
     
 @app.route('/api/create_account', methods = ['GET','POST'])
 def handle_create_account():
     if request.method == 'POST':
-        data = request.json()
+        data = request.json
         username = data.get('username')
         first_name = data.get('first_name')
         last_name = data.get('last_name')
@@ -54,11 +53,11 @@ def handle_create_account():
             enable_foreign_key_constraint()
             db.session.add(user)
             db.session.commit()
-            return jsonify({'success': False})
+            return jsonify({'success' : True})
         else:
-            return jsonify({'success': True})
-
-#calendar event routes          
+            return jsonify({'success' : False})
+        
+#calendar event routes
 @app.route('/api/create_event', methods = ['GET', 'POST'])
 def create_event():
         if request.method == 'POST':
@@ -75,14 +74,14 @@ def create_event():
             event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
             db.session.add(event_to_add)
             db.session.commit()
-            return jsonify({'success': True})    
+            return jsonify({'success' : True})    
         else:
-            return jsonify({'success': False})
+            return jsonify({'success' : False})
 
 @app.route('/api/edit_event', methods = ['GET', 'POST'])
 def edit_event():
     if request.method == 'POST':
-        data = request.json()
+        data = request.json
         event_id = data.get("event_id")
         user_id = data.get("user_id")
         event_name = data.get("event_name")
@@ -93,19 +92,18 @@ def edit_event():
     event = db.session.execute(update(User_Events).where(User_Events.Event_ID == event_id).where(User_Events.User_ID == user_id).values(Event_Name = event_name, Start_Time = start_time, End_Time = end_time))
 
     if event.rowcount == 0:
-        return jsonify({'success': False})    
+        return jsonify({'success' : False})    
     else:
         db.session.commit()
-        return jsonify({'success': True})
-
+        return jsonify({'success' : True})
+    
 @app.route('/api/delete_event', methods = ['GET', 'POST'])
 def delete_event():
     if request.method == 'POST':
-        data = request.json()
+        data = request.json
         event_id = data.get("event_id")
         user_id = data.get("user_id")
 
-    enable_foreign_key_constraint()
     delete_event = db.session.execute(delete(User_Events).where(User_Events.User_ID == user_id).where(User_Events.Event_ID == event_id))
 
     if delete_event.rowcount == 0:
@@ -114,7 +112,7 @@ def delete_event():
         db.session.commit()
         return jsonify({'success' : True})
 
-
+#group endpoints
 @app.route('/api/create_group', methods=['GET', 'POST'])
 def create_group():
     if request.method == 'POST':
