@@ -45,17 +45,17 @@ def handle_create_account():
         last_name = data.get('last_name')
         password = data.get('password')
         
-        stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
-        if stmt is None:
-            ph = PasswordHasher()
-            hashed_password = ph.hash(password)
-            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = hashed_password)
-            enable_foreign_key_constraint()
-            db.session.add(user)
-            db.session.commit()
-            return jsonify({'success' : True})
-        else:
-            return jsonify({'success' : False})
+    stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
+    if stmt is None:
+        ph = PasswordHasher()
+        hashed_password = ph.hash(password)
+        user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = hashed_password)
+        enable_foreign_key_constraint()
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({'success' : True})
+    else:
+        return jsonify({'success' : False})
         
 #calendar event routes
 @app.route('/api/create_event', methods = ['GET', 'POST'])
