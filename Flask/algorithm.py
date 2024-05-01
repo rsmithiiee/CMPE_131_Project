@@ -2,12 +2,15 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 #note: must use functions in this order: stringtodatetime, supersort, removeoverlap, freetimeinday
 from datetime import datetime
-
+from json import json
 def superfn(time_list):
     stringtodatetime(time_list)
     supersort(time_list)
     removeOverlap(time_list)
-    return freeTimeInDay(time_list)
+    freetimelist = freeTimeInDay(time_list)
+    convertToJson = [{'start_time': item[0], 'end_time': item[1]} for item in freetimelist]
+    json_data = json.dumps(convertToJson)
+    return json_data
 #FOR RYAN AYAYAYAYAYAYA
 #takes in 2 tuples of string dates in ISO. Returns true if no overlap, false if overlap
 def cmpEvent(timeStringTupleOne, timeStringTupleTwo):
