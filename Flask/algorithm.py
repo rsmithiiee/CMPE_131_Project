@@ -8,7 +8,7 @@ def superfn(time_list):
     supersort(time_list)
     removeOverlap(time_list)
     freetimelist = freeTimeInDay(time_list)
-    convertToJson = [{'start_time': item[0], 'end_time': item[1]} for item in freetimelist]
+    convertToJson = [{'start': item[0], 'end': item[1]} for item in freetimelist]
     json_data = json.dumps(convertToJson)
     return json_data
 #FOR RYAN AYAYAYAYAYAYA
