@@ -5,8 +5,8 @@ import json
 def superfn(time_list):
     stringToDatetime(time_list)
     superSort(time_list)
-    freeTimeList = removeOverlap(time_list)
-    freetimelist = freeTimeInDay(freeTimeList)
+    time_list = removeOverlap(time_list)
+    freetimelist = freeTimeInDay(time_list)
     convertToJson = [{'start': item[0], 'end': item[1]} for item in freetimelist]
     json_data = json.dumps(convertToJson)
     return json_data
