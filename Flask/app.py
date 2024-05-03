@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy_db_setup import db, Users, User_Events, Groups, Group_Users_m2m
 from flask_cors import CORS
+from sqlite3 import IntegrityError
 from sqlalchemy import select, between, or_, update, delete, text
 from argon2 import PasswordHasher
 
@@ -29,9 +30,16 @@ def handle_login():
 
         ph = PasswordHasher()
         stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
-        check_pass = ph.verify(stmt.Password, password)
+        if stmt is None:
+            return jsonify({'success' : False})
+        
+        check_pass = False
+        try:
+            check_pass = ph.verify(stmt.Password, password)
+        except: 
+            pass
             
-        if stmt is None or check_pass != True:
+        if check_pass != True:
             return jsonify({'success' : False})    
         else:
             return jsonify({'success': True})
@@ -45,17 +53,17 @@ def handle_create_account():
         last_name = data.get('last_name')
         password = data.get('password')
         
-    stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
-    if stmt is None:
-        ph = PasswordHasher()
-        hashed_password = ph.hash(password)
-        user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = hashed_password)
-        enable_foreign_key_constraint()
-        db.session.add(user)
-        db.session.commit()
-        return jsonify({'success' : True})
-    else:
-        return jsonify({'success' : False})
+        stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
+        if stmt is None:
+            ph = PasswordHasher()
+            hashed_password = ph.hash(password)
+            user = Users(First_Name = first_name, Last_Name = last_name, Username = username, Password = hashed_password)
+            enable_foreign_key_constraint()
+            db.session.add(user)
+            db.session.commit()
+            return jsonify({'success' : True})
+        else:
+            return jsonify({'success' : False})
         
 #calendar event routes
 @app.route('/api/create_event', methods = ['GET', 'POST'])
@@ -88,14 +96,14 @@ def edit_event():
         start_time = data.get("start_time")
         end_time = data.get("end_time")
 
-    enable_foreign_key_constraint()
-    event = db.session.execute(update(User_Events).where(User_Events.Event_ID == event_id).where(User_Events.User_ID == user_id).values(Event_Name = event_name, Start_Time = start_time, End_Time = end_time))
+        enable_foreign_key_constraint()
+        event = db.session.execute(update(User_Events).where(User_Events.Event_ID == event_id).where(User_Events.User_ID == user_id).values(Event_Name = event_name, Start_Time = start_time, End_Time = end_time))
 
-    if event.rowcount == 0:
-        return jsonify({'success' : False})    
-    else:
-        db.session.commit()
-        return jsonify({'success' : True})
+        if event.rowcount == 0:
+            return jsonify({'success' : False})    
+        else:
+            db.session.commit()
+            return jsonify({'success' : True})
     
 @app.route('/api/delete_event', methods = ['GET', 'POST'])
 def delete_event():
@@ -104,13 +112,13 @@ def delete_event():
         event_id = data.get("event_id")
         user_id = data.get("user_id")
 
-    delete_event = db.session.execute(delete(User_Events).where(User_Events.User_ID == user_id).where(User_Events.Event_ID == event_id))
+        delete_event = db.session.execute(delete(User_Events).where(User_Events.User_ID == user_id).where(User_Events.Event_ID == event_id))
 
-    if delete_event.rowcount == 0:
-        return jsonify({'success' : False})
-    else:
-        db.session.commit()
-        return jsonify({'success' : True})
+        if delete_event.rowcount == 0:
+            return jsonify({'success' : False})
+        else:
+            db.session.commit()
+            return jsonify({'success' : True})
 
 #group endpoints
 @app.route('/api/create_group', methods=['GET', 'POST'])
@@ -121,13 +129,19 @@ def create_group():
         group_name = data.get('group_name')
         group = Groups(Group_Name=group_name)
         enable_foreign_key_constraint()
-        db.session.add(group)
-        group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
-        db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
-                           {'User_ID': user_id, 'Group_ID': group_id})
-
-        db.session.commit()
-    return jsonify({'success': True})
+        try:
+            db.session.add(group)
+            db.session.commit()
+        except:
+            return jsonify({'success': False})
+        try:
+            group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
+            db.session.execute(Group_Users_m2m.insert().values(User_ID = user_id, Group_ID = group_id))
+            db.session.commit()
+        except:
+            return jsonify({'success': False})
+        
+        return jsonify({'success': True})
 
 @app.route('/api/add_users_group', methods=['GET', 'POST'])
 def addToGroup():
@@ -151,7 +165,7 @@ def addToGroup():
             except (IntegrityError) as e:
                 return jsonify({'success': False})
             db.session.commit()
-    return jsonify({'success': True})
+            return jsonify({'success': True})
 
 @app.route('/api/delete_user_group', methods=['GET', 'POST'])
 def removeFromGroup():
@@ -168,7 +182,7 @@ def removeFromGroup():
             group_id = group.Group_ID
             db.session.execute(text("DELETE FROM Group_Users WHERE User_ID=:user_id AND Group_ID = :group_id"), {'user_id': user_ID, 'group_id': group_id})
             db.session.commit()
-        return jsonify({'success': True})
+            return jsonify({'success': True})
 
 
 if __name__ == "__main__":
