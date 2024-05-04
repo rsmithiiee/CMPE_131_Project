@@ -1,15 +1,22 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+
 #note: must use functions in this order: stringtodatetime, supersort, removeoverlap, freetimeinday
 from datetime import datetime
-
+import json
+def superfn(time_list):
+    stringToDatetime(time_list)
+    superSort(time_list)
+    time_list = removeOverlap(time_list)
+    freetimelist = freeTimeInDay(time_list)
+    convertToJson = [{'start': item[0], 'end': item[1]} for item in freetimelist]
+    json_data = json.dumps(convertToJson)
+    return json_data
 #FOR RYAN AYAYAYAYAYAYA
 #takes in 2 tuples of string dates in ISO. Returns true if no overlap, false if overlap
 def cmpEvent(timeStringTupleOne, timeStringTupleTwo):
     dateTimeTupleOne = ("","")
     dateTimeTupleTwo = ("", "")
-    dateTimeTupleOne = (datetime.strptime(timeStringTupleOne[0] , "%Y-%m-%d %H:%M:%S.%f"), datetime.strptime(timeStringTupleOne[1] , "%Y-%m-%d %H:%M:%S.%f"))
-    dateTimeTupleTwo = (datetime.strptime(timeStringTupleTwo[0] , "%Y-%m-%d %H:%M:%S.%f"), datetime.strptime(timeStringTupleTwo[1] , "%Y-%m-%d %H:%M:%S.%f"))
+    dateTimeTupleOne = (datetime.fromisoformat(timeStringTupleOne[0]), datetime.fromisoformat(timeStringTupleOne[1]))
+    dateTimeTupleTwo = (datetime.fromisoformat(timeStringTupleTwo[0]), datetime.fromisoformat(timeStringTupleTwo[1]) )
     if(dateTimeTupleOne[0] <= dateTimeTupleTwo[0]):
         if(dateTimeTupleOne[1] >= dateTimeTupleTwo[1] and dateTimeTupleTwo[0] <= dateTimeTupleOne[1]):
             return False 
@@ -58,7 +65,7 @@ def superSort(time_list):
 def stringToDatetime(time_list):
   timetuple = ("filler", "filler")
   for timeTuple in time_list:
-    timetuple = (datetime.strptime(timeTuple[0] , "%Y-%m-%d %H:%M:%S.%f"), datetime.strptime(timeTuple[1] , "%Y-%m-%d %H:%M:%S.%f"))
+    timetuple = (datetime.fromisoformat(timeTuple[0]), datetime.fromisoformat(timeTuple[1]))
   return len(time_list)
 
 #remove overlapping times, requires sorted (start and end) datetime list and length of list

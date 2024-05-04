@@ -24,6 +24,7 @@ class Users(db.Model):
     Username : Mapped[str] = mapped_column(unique = True)
     Password : Mapped[str]
     User_Groups : Mapped[List["Groups"]] = relationship(secondary = Group_Users_m2m, back_populates = "Group_Users")
+    Events_of_User : Mapped[List["User_Events"]] = relationship()
 
 class User_Events(db.Model):
     __tablename__ = "User_Events"
@@ -38,4 +39,3 @@ class Groups(db.Model):
     Group_ID : Mapped[int] = mapped_column(primary_key = True)
     Group_Name : Mapped[str]
     Group_Users : Mapped[List["Users"]] = relationship(secondary = Group_Users_m2m, back_populates = "User_Groups")
-
