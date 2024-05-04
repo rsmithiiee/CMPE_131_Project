@@ -4,6 +4,7 @@ from flask_cors import CORS
 from sqlite3 import IntegrityError
 from sqlalchemy import select, between, or_, update, delete, text
 from argon2 import PasswordHasher
+from algorithm import superfn
 
 #initialize flask instance
 app = Flask(__name__)
