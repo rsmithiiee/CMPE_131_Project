@@ -113,24 +113,25 @@ def create_group():
 def addToGroup():
     if request.method == 'POST':
         data = request.json
-        name = data.get('username')
+        names = data.get('username')
         group = data.get('group_name')
-        user = db.session.scalars(select(Users).where(Users.Username == name)).first()
-        if user is None:
-            return jsonify({'success': False})
-        else:
-            g = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
-            group_id = g.Group_ID
-            user_id = user.User_ID
-            if group_id is None:
+        for name in names:
+            user = db.session.scalars(select(Users).where(Users.Username == name)).first()
+            if user is None:
                 return jsonify({'success': False})
-            try:
-                enable_foreign_key_constraint()
-                db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
-                                   {'User_ID': user_id, 'Group_ID': group_id})
-            except (IntegrityError) as e:
-                return jsonify({'success': False})
-            db.session.commit()
+            else:
+                g = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
+                group_id = g.Group_ID
+                user_id = user.User_ID
+                if group_id is None:
+                    return jsonify({'success': False})
+                try:
+                    enable_foreign_key_constraint()
+                    db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
+                                       {'User_ID': user_id, 'Group_ID': group_id})
+                except (IntegrityError) as e:
+                    return jsonify({'success': False})
+                db.session.commit()
     return jsonify({'success': True})
 
 
@@ -208,23 +209,6 @@ def retreive_user_info():
         }
     return json.dumps(information)
 
-@app.route('/api/test', methods=['GET', 'POST'])
-def test():
-    username = 'hemanthkarnati'
-    userObj = db.session.scalars(select(Users).where(Users.Username == username)).first()
-    userID = userObj.User_ID
-    information = {
-        "user_id": userID,
-        "groups": [
-            {
-                "group_id": group.Group_ID,
-                "group_name": group.Group_Name,
-                "usernames": [{"username": user.Username} for user in group.Group_Users]
-            }
-            for group in userObj.User_Groups
-        ]
-    }
-    return json.dumps(information)
 
 if __name__ == "__main__":
     app.run(debug=True)
