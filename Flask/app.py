@@ -75,20 +75,20 @@ def create_event():
             start_time = data.get('start_time')
             end_time = data.get('end_time')
 
-        calendar_event = db.session.scalars(select(User_Events).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
+            calendar_event = db.session.scalars(select(User_Events).where(User_Events.User_ID == user_id).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
 
-        if calendar_event is None:
-            enable_foreign_key_constraint()
-            event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
-            db.session.add(event_to_add)
-            db.session.commit()
-            return jsonify({'success' : True})    
-        else:
-            return jsonify({'success' : False})
+            if calendar_event is None:
+                enable_foreign_key_constraint()
+                event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
+                db.session.add(event_to_add)
+                db.session.commit()
+                return jsonify({'success' : True})    
+            else:
+                return jsonify({'success' : False})
 
 @app.route('/api/edit_event', methods = ['GET', 'POST'])
 def edit_event():
-    if request.method == 'POST':
+    if request.method == "POST":
         data = request.json
         event_id = data.get("event_id")
         user_id = data.get("user_id")
@@ -107,7 +107,7 @@ def edit_event():
     
 @app.route('/api/delete_event', methods = ['GET', 'POST'])
 def delete_event():
-    if request.method == 'POST':
+    if request.method == "POST":
         data = request.json
         event_id = data.get("event_id")
         user_id = data.get("user_id")
@@ -148,24 +148,22 @@ def addToGroup():
     if request.method == 'POST':
         data = request.json
         name = data.get('username')
-        group = data.get('group_name')
+        group_id = data.get('group_id')
         user = db.session.scalars(select(Users).where(Users.Username == name)).first()
         if user is None:
             return jsonify({'success': False})
-        else:
-            g = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
-            group_id = g.Group_ID
-            user_id = user.User_ID
-            if group_id is None:
-                return jsonify({'success': False})
-            try:
-                enable_foreign_key_constraint()
-                db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
-                                   {'User_ID': user_id, 'Group_ID': group_id})
-            except (IntegrityError) as e:
-                return jsonify({'success': False})
-            db.session.commit()
-            return jsonify({'success': True})
+        user_id = user.User_ID
+        g = db.session.scalars(select(Groups).where(Groups.Group_ID == group_id)).first()
+        if g is None:
+            return jsonify({'success': False})
+        
+        try:
+            enable_foreign_key_constraint()
+            db.session.execute(text("INSERT INTO Groups_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"), {'User_ID': user_id, 'Group_ID': group_id})
+        except:
+            return jsonify({'success': False})
+        db.session.commit()
+        return jsonify({'success': True})
 
 @app.route('/api/delete_user_group', methods=['GET', 'POST'])
 def removeFromGroup():
