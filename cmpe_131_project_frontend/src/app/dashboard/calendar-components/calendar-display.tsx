@@ -10,9 +10,9 @@ import interactionPlugin, {
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { Button, Checkbox, Modal } from "flowbite-react";
 
-export default function CalendarDisplay() {
+export default function CalendarDisplay(user_id) {
   const calendarRef = useRef(null);
-
+  const user = user_id;
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -32,7 +32,7 @@ export default function CalendarDisplay() {
   const selectEventID = useRef();
 
   const eventList = useRef([]);
-  const eventID = useRef(0);
+  const eventID = useRef(1);
 
   const checkHandler = () => {
     setModalInput({ ...modalInput, allDayInput: !modalInput.allDayInput });
@@ -62,7 +62,7 @@ export default function CalendarDisplay() {
       title: modalInput.titleInput,
       start: startTime,
       end: endTime,
-      allDay: modalInput.allDayInput,
+      //allDay: modalInput.allDayInput,
       id: eventID.current,
     };
 

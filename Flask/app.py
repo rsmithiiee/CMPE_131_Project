@@ -145,7 +145,7 @@ def addToGroup():
                 enable_foreign_key_constraint()
                 db.session.execute(text("INSERT INTO Group_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"),
                                    {'User_ID': user_id, 'Group_ID': group_id})
-            except (IntegrityError) as e:
+            except:
                 return jsonify({'success': False})
             db.session.commit()
     return jsonify({'success': True})
