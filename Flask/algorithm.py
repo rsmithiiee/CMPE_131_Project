@@ -15,8 +15,8 @@ def superfn(time_list):
 def cmpEvent(timeStringTupleOne, timeStringTupleTwo):
     dateTimeTupleOne = ("","")
     dateTimeTupleTwo = ("", "")
-    dateTimeTupleOne = (datetime.strptime(timeStringTupleOne[0] ,"%Y-%m-%dT%H:%M:%S %z%Z"), datetime.strptime(timeStringTupleOne[1] , "%Y-%m-%dT%H:%M:%S %z%Z"))
-    dateTimeTupleTwo = (datetime.strptime(timeStringTupleTwo[0] , "%Y-%m-%dT%H:%M:%S %z%Z"), datetime.strptime(timeStringTupleTwo[1] , "%Y-%m-%dT%H:%M:%S %z%Z"))
+    dateTimeTupleOne = (datetime.fromisoformat(timeStringTupleOne[0]), datetime.fromisoformat(timeStringTupleOne[1]))
+    dateTimeTupleTwo = (datetime.fromisoformat(timeStringTupleTwo[0]), datetime.fromisoformat(timeStringTupleTwo[1]) )
     if(dateTimeTupleOne[0] <= dateTimeTupleTwo[0]):
         if(dateTimeTupleOne[1] >= dateTimeTupleTwo[1] and dateTimeTupleTwo[0] <= dateTimeTupleOne[1]):
             return False 
@@ -65,7 +65,7 @@ def superSort(time_list):
 def stringToDatetime(time_list):
   timetuple = ("filler", "filler")
   for timeTuple in time_list:
-    timetuple = (datetime.strptime(timeTuple[0] , "%Y-%m-%dT%H:%M:%S %z%Z"), datetime.strptime(timeTuple[1] , "%Y-%m-%dT%H:%M:%S %z%Z"))
+    timetuple = (datetime.fromisoformat(timeTuple[0]), datetime.fromisoformat(timeTuple[1]))
   return len(time_list)
 
 #remove overlapping times, requires sorted (start and end) datetime list and length of list
