@@ -41,7 +41,7 @@ def retreive_user_info():
                 for group in userObj.Groups
             ]
         }
-    return json.dumps(information)
+        return json.dumps(information)
 
 #Login and create account routes
 @app.route('/api/login', methods = ['GET', 'POST'])
