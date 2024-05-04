@@ -20,6 +20,28 @@ with app.app_context():
 #call before each connection to database where you are inserting, updating, or deleting
 def enable_foreign_key_constraint():
     db.session.execute(text("PRAGMA foreign_keys = ON"))
+    
+#user info on login endpoint
+@app.route('/api/retreive_user_info', methods=['GET', 'POST'])
+def retreive_user_info():
+    information = {}
+    if request.method == 'POST':
+        data = request.json
+        username = data.get('username')
+        userObj = db.session.scalars(select(Users).where(Users.Username == username)).first()
+        userID = userObj.User_ID
+        information = {
+            "user_id": userID,
+            "groups": [
+                {
+                    "group_id": group.Group_ID,
+                    "group_name": group.Group_Name,
+                    "usernames": [{"username": user.User_ID} for user in group.Users]
+                }
+                for group in userObj.Groups
+            ]
+        }
+    return json.dumps(information)
 
 #Login and create account routes
 @app.route('/api/login', methods = ['GET', 'POST'])
