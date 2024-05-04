@@ -109,23 +109,6 @@ def create_group():
     return jsonify({'success': True})
 
 
-@app.route('/api/test', methods=['GET', 'POST'])
-def test_user():
-    name = 'hemanthkarnati'
-    group = 'Embedded'
-    user = db.session.scalars(select(Users).where(Users.Username == name)).first()
-    if user is None:
-        return jsonify({'success': False})
-    else:
-        user_ID = user.User_ID
-        group = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
-        group_id = group.Group_ID
-        db.session.execute(text("DELETE FROM Group_Users WHERE User_ID=:user_id AND Group_ID = :group_id"),
-                           {'user_id': user_ID, 'group_id': group_id})
-        db.session.commit()
-    return jsonify({'success': True})
-
-
 @app.route('/api/add_users_group', methods=['GET', 'POST'])
 def addToGroup():
     if request.method == 'POST':
@@ -225,7 +208,23 @@ def retreive_user_info():
         }
     return json.dumps(information)
 
-
+@app.route('/api/test', methods=['GET', 'POST'])
+def test():
+    username = 'hemanthkarnati'
+    userObj = db.session.scalars(select(Users).where(Users.Username == username)).first()
+    userID = userObj.User_ID
+    information = {
+        "user_id": userID,
+        "groups": [
+            {
+                "group_id": group.Group_ID,
+                "group_name": group.Group_Name,
+                "usernames": [{"username": user.Username} for user in group.Group_Users]
+            }
+            for group in userObj.User_Groups
+        ]
+    }
+    return json.dumps(information)
 
 if __name__ == "__main__":
     app.run(debug=True)
