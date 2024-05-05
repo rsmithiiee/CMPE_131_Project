@@ -12,8 +12,8 @@ db = SQLAlchemy(model_class = Base)
 Group_Users_m2m = Table(
     "Groups_Users",
     Base.metadata,
-    Column("Groups", ForeignKey("Groups.Group_ID"), primary_key = True),
-    Column("Users", ForeignKey("Users.User_ID"), primary_key = True),
+    Column("Group_ID", ForeignKey("Groups.Group_ID"), primary_key = True),
+    Column("User_ID", ForeignKey("Users.User_ID"), primary_key = True),
 )
 
 class Users(db.Model):
