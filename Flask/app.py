@@ -211,7 +211,7 @@ def retrieve_user_events():
         
         #iterate through the events of user list and for each event create a json object and append to the list
         for User_Events in rc.Events_of_User:
-            events_json = {"Title" : User_Events.Event_Name, "start" : User_Events.Start_Time, "end" : User_Events.End_Time, "allDay" : False, "id" : User_Events.Event_ID}
+            events_json = {"title" : User_Events.Event_Name, "start" : User_Events.Start_Time, "end" : User_Events.End_Time, "allDay" : False, "id" : User_Events.Event_ID}
             user_events.append(events_json)
 
         #return false if no events
@@ -240,7 +240,7 @@ def create_group():
             db.session.execute(Group_Users_m2m.insert().values(User_ID = user_id, Group_ID = group_id))
             db.session.commit()
         except:
-            return jsonify({'success': False})
+            return jsonify({'success': False, 'group_id': group_id})
         
         return jsonify({'success': True})
 

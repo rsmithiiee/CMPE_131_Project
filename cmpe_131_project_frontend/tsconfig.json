@@ -23,7 +23,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
-    "src/app/dashboard/sidebar-components/group.tsx"
+    "src/app/[dashboardUser]/sidebar-components/group.tsx"
   ],
   "exclude": ["node_modules"]
 }

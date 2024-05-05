@@ -12,7 +12,7 @@ export default function Login() {
 
   const navDashboard = async () => {
     const object = { username: username, password: password };
-    const response = await fetch("http://localhost:5000/login", {
+    const response = await fetch("http://localhost:5000/api/login", {
       method: "POST",
       body: JSON.stringify(object),
       headers: {
@@ -26,7 +26,7 @@ export default function Login() {
 
     if (isAuth == true) {
       console.log(data.message);
-      router.push("/dashboard");
+      router.push("/" + username);
     } else if (isAuth == false) {
       console.log(data.message);
       setInvalidAuth(true);
