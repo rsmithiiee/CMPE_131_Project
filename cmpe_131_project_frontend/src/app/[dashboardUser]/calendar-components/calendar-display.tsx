@@ -10,9 +10,36 @@ import interactionPlugin, {
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { Button, Checkbox, Modal } from "flowbite-react";
 
-export default function CalendarDisplay(user_id) {
+export default function CalendarDisplay({ userID }) {
+  const [effectTrigger, setEffectTrigger] = useState(0);
+  const object = {
+    user_id: userID,
+    start_time: "",
+    end_time: "",
+  };
+  console.log("events object: ", object);
+  useEffect(() => {
+    async function fetchUserGroup() {
+      const response = await fetch(
+        "http://localhost:5000/api/retrieve_user_events",
+        {
+          method: "POST",
+          body: JSON.stringify(object),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      setEventArray(data);
+      //console.log("eventsList: ", data);
+    }
+
+    fetchUserGroup();
+  }, [effectTrigger, userID]);
+
   const calendarRef = useRef(null);
-  const user = user_id;
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -32,6 +59,15 @@ export default function CalendarDisplay(user_id) {
   const selectEventID = useRef();
 
   const eventList = useRef([]);
+  const [eventArray, setEventArray] = useState([
+    {
+      title: "",
+      start: "",
+      end: "",
+      allDay: false,
+      id: 0,
+    },
+  ]);
   const eventID = useRef(1);
 
   const checkHandler = () => {
@@ -46,7 +82,7 @@ export default function CalendarDisplay(user_id) {
     return { time, hours, minutes };
   }
 
-  function handleAddEvent() {
+  async function handleAddEvent() {
     const calendarApi = calendarRef.current.getApi();
 
     const startTime = startSelectTime.current.replace(
@@ -66,11 +102,27 @@ export default function CalendarDisplay(user_id) {
       id: eventID.current,
     };
 
-    eventList.current.push(tempEvent);
-    console.log("event log add: ", eventList);
+    const object = {
+      user_id: userID,
+      event_name: modalInput.titleInput,
+      start_time: startTime,
+      end_time: endTime,
+    };
+    console.log("event:", object);
+    const response = await fetch("http://localhost:5000/api/create_event", {
+      method: "POST",
+      body: JSON.stringify(object),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("adding event");
+    const data = await response.json();
+    const confirm = data.success;
+    console.log(confirm);
 
-    calendarApi.addEvent(tempEvent);
-    console.log(calendarApi.getEvents());
+    setEffectTrigger(effectTrigger + 1);
+
     setModalInput({
       ...modalInput,
       titleInput: "",
@@ -82,19 +134,39 @@ export default function CalendarDisplay(user_id) {
     setShowAddModal(false);
   }
 
-  function handleEventChange(event) {
+  async function handleEventChange(event) {
     const selectEvent = event.event;
-    const selectEventId = selectEvent.id;
-    const tempEvent = {
-      title: selectEvent.title,
-      start: selectEvent.startStr,
-      end: selectEvent.endStr,
-      allDay: selectEvent.allDay,
-      id: selectEventId,
-    };
+    // const tempEvent = {
+    //   title: selectEvent.title,
+    //   start: selectEvent.startStr,
+    //   end: selectEvent.endStr,
+    //   allDay: selectEvent.allDay,
+    //   id: selectEventId,
+    // };
 
-    eventList.current[selectEventId] = tempEvent;
-    console.log("event log: ", eventList);
+    console.log("Select Event: ", selectEvent.title, " : ", selectEvent);
+
+    const object = {
+      user_id: userID,
+      event_id: selectEvent.id,
+      event_name: selectEvent.title,
+      start_time: selectEvent.startStr,
+      end_time: selectEvent.endStr,
+    };
+    console.log("event:", object);
+    const response = await fetch("http://localhost:5000/api/edit_event", {
+      method: "POST",
+      body: JSON.stringify(object),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("move event");
+    const data = await response.json();
+    const confirm = data.success;
+    console.log(confirm);
+
+    setEffectTrigger(effectTrigger + 1);
   }
 
   function handleDataSelect(date) {
@@ -110,28 +182,46 @@ export default function CalendarDisplay(user_id) {
   }
 
   function handelEventClick(event) {
-    const calendarApi = calendarRef.current.getApi();
     selectEventID.current = event.event.id;
-    const targetEvent = calendarApi.getEventById(event.event.id);
-    const start = new Date(targetEvent.startStr);
-    const end = new Date(targetEvent.endStr);
+
     setEventDetails({
       ...eventDetails,
-      titleInput: targetEvent.title,
-      startDate: String(start),
-      endDate: String(end),
+      titleInput: event.event.title,
+      startDate: String(event.event.start),
+      endDate: String(event.event.end),
     });
+
+    setModalInput({
+      ...modalInput,
+      titleInput: event.event.title,
+      startInput: isoParser(event.event.startStr).time,
+      endInput: isoParser(event.event.endStr).time,
+    });
+    // console.log("Event Select Modal: ", modalInput);
     setShowEventModal(true);
   }
 
-  function handleDeleteEvent() {
-    const calendarApi = calendarRef.current.getApi();
-    const event = calendarApi.getEventById(selectEventID.current);
-    event.remove();
-    eventList.current.splice(selectEventID.current, 1);
+  async function handleDeleteEvent() {
+    const object = {
+      user_id: userID,
+      event_id: selectEventID.current,
+    };
+    console.log("event:", object);
+    const response = await fetch("http://localhost:5000/api/delete_event", {
+      method: "POST",
+      body: JSON.stringify(object),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("delete event");
+    const data = await response.json();
+    const confirm = data.success;
+    console.log(confirm);
+
+    setEffectTrigger(effectTrigger + 1);
+
     setShowEventModal(false);
-    console.log("event log delete: ", eventList);
-    console.log(calendarApi.getEvents());
   }
 
   function handleEditModal() {
@@ -150,7 +240,7 @@ export default function CalendarDisplay(user_id) {
     });
   }
 
-  function handleEditEvent() {
+  async function handleEditEvent() {
     const calendarApi = calendarRef.current.getApi();
     const event = calendarApi.getEventById(selectEventID.current);
 
@@ -163,19 +253,27 @@ export default function CalendarDisplay(user_id) {
       modalInput.endInput
     );
 
-    event.setProp("title", modalInput.titleInput);
-    event.setStart(startTime);
-    event.setEnd(endTime);
-
-    const tempEvent = {
-      title: event.title,
-      start: startTime,
-      end: endTime,
-      allDay: event.allDay,
-      id: event.id,
+    const object = {
+      user_id: userID,
+      event_id: selectEventID.current,
+      event_name: modalInput.titleInput,
+      start_time: startTime,
+      end_time: endTime,
     };
+    console.log("event:", object);
+    const response = await fetch("http://localhost:5000/api/edit_event", {
+      method: "POST",
+      body: JSON.stringify(object),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("edit event");
+    const data = await response.json();
+    const confirm = data.success;
+    console.log(confirm);
 
-    eventList.current[event.id] = tempEvent;
+    setEffectTrigger(effectTrigger + 1);
 
     setShowEditModal(false);
     setModalInput({
@@ -198,6 +296,7 @@ export default function CalendarDisplay(user_id) {
             center: "title",
             right: "dayGridMonth,timeGridWeek",
           }}
+          events={eventArray}
           contentHeight={"auto"}
           nowIndicator={true}
           editable={true}

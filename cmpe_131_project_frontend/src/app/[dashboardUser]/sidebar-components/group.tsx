@@ -1,11 +1,11 @@
 "use client";
 import { HiPlus, HiDotsHorizontal } from "react-icons/hi";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Modal, Dropdown } from "flowbite-react";
 import type { CustomFlowbiteTheme } from "flowbite-react";
 
-export default function Group() {
-  const [selectGroup, setSelectGroup] = useState();
+export default function Group({ userName, setGroupUsers, setUserID }) {
+  const selectGroup = useRef();
   const selectGroupName = useRef();
   const [modalInput, setModalInput] = useState({
     groupName: "",
@@ -13,23 +13,63 @@ export default function Group() {
   });
   const [showAddGroupModal, setShowAddGroupModal] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
-  const groupList = useRef([]);
+  const groupIDList = useRef([]);
   const userlist = useRef([]);
+  const [effectTrigger, setEffectTrigger] = useState(0);
 
-  const groupCards = groupList.current.map((groupItem) => (
-    <li key={groupItem.groupID} className="flex h-auto">
+  const userID = useRef(null);
+  const [groupArray, setGroupArray] = useState([
+    {
+      group_id: "",
+      group_name: "",
+      usernames: [],
+    },
+  ]);
+
+  const object = {
+    username: userName,
+  };
+  useEffect(() => {
+    async function fetchUserGroup() {
+      const response = await fetch(
+        "http://localhost:5000/api/retrieve_user_info",
+        {
+          method: "POST",
+          body: JSON.stringify(object),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      userID.current = data.user_id;
+      setUserID(data.user_id);
+      setGroupArray(data.groups);
+    }
+
+    fetchUserGroup();
+  }, [effectTrigger]);
+
+  const groupCards = groupArray.map((groupItem) => (
+    <li
+      key={groupItem.group_id}
+      id={groupItem.group_id}
+      className="flex h-auto focus:bg-slate-300 hover:bg-slate-300"
+    >
       <button
-        className="flex justify-start items-center w-full gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-600 focus:bg-slate-300 hover:bg-slate-300 "
-        id={groupItem}
-        onClick={(e) => handleGroup(e)}
+        className="flex justify-start items-center w-full gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-600  "
+        id={groupItem.group_id}
+        onClick={() => handleGroup(groupItem.usernames)}
       >
         <div className="size-4 bg-emerald-600 rounded" />
-        {groupItem}
+        {groupItem.group_name}
       </button>
       <div className="flex justify-center items-center w-10">
         <button
-          className="flex justify-center items-center h-full w-full rounded hover:bg-slate-300"
-          onClick={() => setShowGroupModal(true)}
+          className="flex justify-center items-center h-full w-full border-b hover:bg-slate-300"
+          onClick={() =>
+            handleGroupMenu(groupItem.group_id, groupItem.group_name)
+          }
         >
           <HiDotsHorizontal />
         </button>
@@ -83,11 +123,18 @@ export default function Group() {
     </li>
   ));
 
+  function handleGroupMenu(group_id, group_name) {
+    selectGroup.current = group_id;
+    selectGroupName.current = group_name;
+    setShowGroupModal(true);
+  }
+
   async function handleAddUser() {
     const tempUserName = modalInput.userName;
+
     const object = {
       username: tempUserName,
-      group_name: selectGroupName.current,
+      group_id: selectGroup.current,
     };
     const response = await fetch("http://localhost:5000/api/add_users_group", {
       method: "POST",
@@ -101,18 +148,21 @@ export default function Group() {
     const confirm = data.success;
     console.log(confirm);
 
+    setEffectTrigger(effectTrigger + 1);
     resetModal();
   }
 
   async function handleDeleteUser() {
     const tempUserName = modalInput.userName;
+
     const object = {
       username: tempUserName,
-      group_name: selectGroupName.current,
+      group_name: selectGroup.current,
     };
     const response = await fetch(
       "http://localhost:5000/api/delete_user_group",
       {
+        mode: "no-cors",
         method: "POST",
         body: JSON.stringify(object),
         headers: {
@@ -125,21 +175,24 @@ export default function Group() {
     const confirm = data.success;
     console.log(confirm);
 
+    setEffectTrigger(effectTrigger + 1);
     resetModal();
   }
 
-  function handleGroup(e) {
-    selectGroupName.current = e.target.id;
-    console.log(selectGroupName.current);
+  function handleGroup(users) {
+    setGroupUsers(users);
   }
 
   async function handleAddGroup() {
     const tempGroupName = modalInput.groupName;
-
-    groupList.current.push(tempGroupName);
+    groupIDList.current.push(tempGroupName);
     const object = {
+      user_id: userID.current,
       group_name: tempGroupName,
     };
+
+    console.log("Add Group Obj: ", object);
+
     const response = await fetch("http://localhost:5000/api/create_group", {
       method: "POST",
       body: JSON.stringify(object),
@@ -150,10 +203,11 @@ export default function Group() {
     console.log("group sent");
     const data = await response.json();
     const confirm = data.success;
+    //groupIDList.current.push(data.group_id);
     console.log(confirm);
 
     setShowAddGroupModal(false);
-
+    setEffectTrigger(effectTrigger + 1);
     resetModal();
   }
 

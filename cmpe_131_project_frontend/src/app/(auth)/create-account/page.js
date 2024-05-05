@@ -19,7 +19,7 @@ export default function CreateAccount() {
       username: username,
       password: password,
     };
-    const response = await fetch("http://localhost:5000/create_account", {
+    const response = await fetch("http://localhost:5000/api/create_account", {
       method: "POST",
       body: JSON.stringify(object),
       headers: {
@@ -33,7 +33,7 @@ export default function CreateAccount() {
 
     if (!userTaken) {
       console.log(data.message);
-      router.push("/dashboard");
+      router.push("/" + username);
     } else if (userTaken) {
       console.log(data.message);
       setUserTaken(true);
