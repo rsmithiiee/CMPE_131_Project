@@ -10,14 +10,14 @@ import interactionPlugin, {
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { Button, Checkbox, Modal } from "flowbite-react";
 
-export default function CalendarDisplay({ userID }) {
+export default function CalendarDisplay({ userID, groupID, showFreeTime }) {
   const [effectTrigger, setEffectTrigger] = useState(0);
   const object = {
     user_id: userID,
     start_time: "",
     end_time: "",
   };
-  console.log("events object: ", object);
+
   useEffect(() => {
     async function fetchUserGroup() {
       const response = await fetch(
@@ -32,11 +32,58 @@ export default function CalendarDisplay({ userID }) {
       );
       const data = await response.json();
       setEventArray(data);
-      //console.log("eventsList: ", data);
     }
 
     fetchUserGroup();
   }, [effectTrigger, userID]);
+
+  useEffect(() => {
+    async function fetchFreeTime() {
+      const calendarApi = calendarRef.current.getApi();
+      const view = calendarApi.view;
+      const startDate = view.currentStart;
+      const endDate = view.currentEnd;
+      console.log("View: ", view);
+      console.log(
+        "Week Date: ",
+        startDate.toISOString(),
+        " : ",
+        endDate.toISOString()
+      );
+      const objectFreeTime = {
+        group_id: groupID,
+        start_time: startDate.toISOString(),
+        end_time: endDate.toISOString(),
+      };
+      console.log("Week Date object: ", objectFreeTime);
+
+      const response = await fetch(
+        "http://localhost:5000/api/retrieve_group_free_times",
+        {
+          method: "POST",
+          body: JSON.stringify(objectFreeTime),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      let tempArray = [];
+      for (let i = 0; i < data.length; i++) {
+        let temp = {
+          backgroundColor: "green",
+          editable: false,
+          start: data[i].start,
+          end: data[i].end,
+        };
+        tempArray.push(temp);
+      }
+      console.log("temp: ", tempArray);
+      setFreeTimeArray(tempArray);
+    }
+
+    fetchFreeTime();
+  }, [effectTrigger, groupID]);
 
   const calendarRef = useRef(null);
 
@@ -68,7 +115,15 @@ export default function CalendarDisplay({ userID }) {
       id: 0,
     },
   ]);
-  const eventID = useRef(1);
+
+  const [freeTimeArray, setFreeTimeArray] = useState([
+    {
+      backgroundColor: "green",
+      editable: false,
+      start: "",
+      end: "",
+    },
+  ]);
 
   const checkHandler = () => {
     setModalInput({ ...modalInput, allDayInput: !modalInput.allDayInput });
@@ -83,8 +138,6 @@ export default function CalendarDisplay({ userID }) {
   }
 
   async function handleAddEvent() {
-    const calendarApi = calendarRef.current.getApi();
-
     const startTime = startSelectTime.current.replace(
       isoParser(startSelectTime.current).time,
       modalInput.startInput
@@ -93,14 +146,6 @@ export default function CalendarDisplay({ userID }) {
       isoParser(endSelectTime.current).time,
       modalInput.endInput
     );
-
-    const tempEvent = {
-      title: modalInput.titleInput,
-      start: startTime,
-      end: endTime,
-      //allDay: modalInput.allDayInput,
-      id: eventID.current,
-    };
 
     const object = {
       user_id: userID,
@@ -130,21 +175,11 @@ export default function CalendarDisplay({ userID }) {
       endInput: "",
       allDayInput: false,
     });
-    eventID.current++;
     setShowAddModal(false);
   }
 
   async function handleEventChange(event) {
     const selectEvent = event.event;
-    // const tempEvent = {
-    //   title: selectEvent.title,
-    //   start: selectEvent.startStr,
-    //   end: selectEvent.endStr,
-    //   allDay: selectEvent.allDay,
-    //   id: selectEventId,
-    // };
-
-    console.log("Select Event: ", selectEvent.title, " : ", selectEvent);
 
     const object = {
       user_id: userID,
@@ -179,6 +214,7 @@ export default function CalendarDisplay({ userID }) {
       endInput: isoParser(date.endStr).time,
     });
     setShowAddModal(true);
+    setEffectTrigger(effectTrigger + 1);
   }
 
   function handelEventClick(event) {
@@ -296,7 +332,7 @@ export default function CalendarDisplay({ userID }) {
             center: "title",
             right: "dayGridMonth,timeGridWeek",
           }}
-          events={eventArray}
+          events={showFreeTime ? freeTimeArray : eventArray}
           contentHeight={"auto"}
           nowIndicator={true}
           editable={true}

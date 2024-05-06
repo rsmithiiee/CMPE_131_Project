@@ -2,7 +2,14 @@ import People from "./people.js";
 import Group from "./group.tsx";
 import { useState } from "react";
 
-export default function Sidebar({ userName, setUserID }) {
+export default function Sidebar({
+  userName,
+  setUserID,
+  setGroupID,
+  groupID,
+  setShowFreeTime,
+  showFreeTime,
+}) {
   const [groupUsers, setGroupUsers] = useState([]);
 
   return (
@@ -13,6 +20,10 @@ export default function Sidebar({ userName, setUserID }) {
           userName={userName}
           setGroupUsers={setGroupUsers}
           setUserID={setUserID}
+          setGroupID={setGroupID}
+          groupID={groupID}
+          setShowFreeTime={setShowFreeTime}
+          showFreeTime={showFreeTime}
         />
       </div>
     </div>
