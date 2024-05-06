@@ -268,20 +268,18 @@ def addToGroup():
 
 @app.route('/api/delete_user_group', methods=['GET', 'POST'])
 def removeFromGroup():
-    if request.method == 'POST':
-        data = request.json
-        name = data.get('username')
-        group = data.get('group_name')
-        user = db.session.scalars(select(Users).where(Users.Username == name)).first()
-        if user is None:
-            return jsonify({'success': False})
-        else :
-            user_ID = user.User_ID
-            group = db.session.scalars(select(Groups).where(Groups.Group_Name == group)).first()
-            group_id = group.Group_ID
-            db.session.execute(text("DELETE FROM Group_Users WHERE User_ID=:user_id AND Group_ID = :group_id"), {'user_id': user_ID, 'group_id': group_id})
-            db.session.commit()
-            return jsonify({'success': True})
+    data = request.json
+    name = data.get('username')
+    group_id = data.get('group_id')
+    user = db.session.scalars(select(Users).where(Users.Username == name)).first()
+    if user is None or group_id is None:
+        return jsonify({'success': False})
+    else:
+        user_ID = user.User_ID
+        db.session.execute(text("DELETE FROM Groups_Users WHERE User_ID=:user_id AND Group_ID = :group_id"),
+                           {'user_id': user_ID, 'group_id': group_id})
+        db.session.commit()
+    return jsonify({'success': True})
 
 
 if __name__ == "__main__":

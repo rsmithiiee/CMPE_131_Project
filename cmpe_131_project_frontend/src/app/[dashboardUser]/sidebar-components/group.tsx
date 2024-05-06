@@ -157,12 +157,11 @@ export default function Group({ userName, setGroupUsers, setUserID }) {
 
     const object = {
       username: tempUserName,
-      group_name: selectGroup.current,
+      group_id: selectGroup.current,
     };
     const response = await fetch(
       "http://localhost:5000/api/delete_user_group",
       {
-        mode: "no-cors",
         method: "POST",
         body: JSON.stringify(object),
         headers: {
