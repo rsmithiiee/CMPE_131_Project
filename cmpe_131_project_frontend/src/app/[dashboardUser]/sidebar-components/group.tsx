@@ -4,7 +4,15 @@ import { useState, useRef, useEffect } from "react";
 import { Modal, Dropdown } from "flowbite-react";
 import type { CustomFlowbiteTheme } from "flowbite-react";
 
-export default function Group({ userName, setGroupUsers, setUserID }) {
+export default function Group({
+  userName,
+  setGroupUsers,
+  setUserID,
+  setGroupID,
+  groupID,
+  setShowFreeTime,
+  showFreeTime,
+}) {
   const selectGroup = useRef();
   const selectGroupName = useRef();
   const [modalInput, setModalInput] = useState({
@@ -57,9 +65,9 @@ export default function Group({ userName, setGroupUsers, setUserID }) {
       className="flex h-auto focus:bg-slate-300 hover:bg-slate-300"
     >
       <button
-        className="flex justify-start items-center w-full gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-600  "
+        className="flex justify-start items-center w-full gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-600 focus:bg-slate-300 "
         id={groupItem.group_id}
-        onClick={() => handleGroup(groupItem.usernames)}
+        onClick={() => handleGroup(groupItem.usernames, groupItem.group_id)}
       >
         <div className="size-4 bg-emerald-600 rounded" />
         {groupItem.group_name}
@@ -178,8 +186,12 @@ export default function Group({ userName, setGroupUsers, setUserID }) {
     resetModal();
   }
 
-  function handleGroup(users) {
+  function handleGroup(users, selectGroupID) {
     setGroupUsers(users);
+    if (groupID == selectGroupID) {
+      setShowFreeTime(!showFreeTime);
+    }
+    setGroupID(selectGroupID);
   }
 
   async function handleAddGroup() {

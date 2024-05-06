@@ -41,7 +41,7 @@ export default function CreateAccount() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-600">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-black">
       {userTaken && (
         <Alert
           color="failure"
@@ -53,18 +53,19 @@ export default function CreateAccount() {
       )}
       <div
         id="option-card"
-        className="flex flex-col items-center justify-center w-96 h-96 bg-gray-700 rounded-xl shadow-2xl p-4"
+        className="flex flex-col items-center justify-between w-96 bg-white rounded-xl shadow-2xl p-7"
       >
         <form className="flex max-w-md flex-col gap-4">
           <div>
             <div className="mb-2 block">
               <Label
-                className="text-white"
+                className="text-black"
                 htmlFor="firstname"
                 value="Your First Name"
               />
             </div>
             <TextInput
+              className="ring-2 rounded-lg ring-black"
               id="firstname"
               type="firstname"
               value={firstName}
@@ -76,12 +77,13 @@ export default function CreateAccount() {
             <div>
               <div className="mb-2 block">
                 <Label
-                  className="text-white"
+                  className="text-black"
                   htmlFor="lastname"
                   value="Your Last Name"
                 />
               </div>
               <TextInput
+                className="ring-2 rounded-lg ring-black"
                 id="lastname"
                 type="lastname"
                 value={lastName}
@@ -91,12 +93,13 @@ export default function CreateAccount() {
             </div>
             <div className="mb-2 block">
               <Label
-                className="text-white"
+                className="text-black"
                 htmlFor="username"
                 value="Your username"
               />
             </div>
             <TextInput
+              className="ring-2 rounded-lg ring-black"
               id="username"
               type="username"
               value={username}
@@ -107,12 +110,13 @@ export default function CreateAccount() {
           <div>
             <div className="mb-2 block">
               <Label
-                className="text-white"
+                className="text-black"
                 htmlFor="password1"
                 value="Your password"
               />
             </div>
             <TextInput
+              className="ring-2 rounded-lg ring-black"
               id="password1"
               type="password"
               value={password}
@@ -120,23 +124,23 @@ export default function CreateAccount() {
               required
             />
           </div>
-          <div id="create-account-button" className="grid grid-cols-2">
-            <Button
-              className="bg-green-700"
+          <div id="create-account-button" className="grid grid-cols-2 gap-4">
+            <button
+              className="text-black font-semibold hover:bg-black hover:text-white p-2 rounded-xl"
               type="button"
               onClick={() => {
                 router.back();
               }}
             >
               Back
-            </Button>
-            <Button
-              className="bg-green-700"
+            </button>
+            <button
+              className="text-black font-semibold hover:bg-black hover:text-white p-2 rounded-xl"
               type="button"
               onClick={navDashboard}
             >
               Submit
-            </Button>
+            </button>
           </div>
         </form>
       </div>

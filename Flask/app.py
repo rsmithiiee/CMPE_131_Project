@@ -187,7 +187,7 @@ def retrieve_group_free_times():
 
         #pass the list to the algorithm
         free_times_list = superfn(user_events)
-
+        
         #return the array of json objects
         return free_times_list
     
