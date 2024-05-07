@@ -264,15 +264,14 @@ def create_group():
         enable_foreign_key_constraint()
         try:
             db.session.add(group)
-            db.session.commit()
+            db.session.flush()
         except:
             return jsonify({'success': False})
         try:
-            group_id = db.session.execute(text("SELECT last_insert_rowid()")).scalar()
-            db.session.execute(Group_Users_m2m.insert().values(User_ID = user_id, Group_ID = group_id))
+            db.session.execute(Group_Users_m2m.insert().values(User_ID = user_id, Group_ID = group.Group_ID))
             db.session.commit()
         except:
-            return jsonify({'success': False, 'group_id': group_id})
+            return jsonify({'success': False, 'group_id': group.Group_ID})
         
         return jsonify({'success': True})
 
