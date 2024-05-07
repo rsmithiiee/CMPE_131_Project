@@ -123,9 +123,10 @@ def create_event():
                 event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
                 try:
                     db.session.add(event_to_add)
+                    db.session.commit()
                 except:
                     return jsonify({'success': False})
-                db.session.commit()
+                
                 return jsonify({'success' : True})    
             else:
                 return jsonify({'success' : False})
@@ -146,13 +147,13 @@ def edit_event():
         enable_foreign_key_constraint()
         try:
             event = db.session.execute(update(User_Events).where(User_Events.Event_ID == event_id).where(User_Events.User_ID == user_id).values(Event_Name = event_name, Start_Time = start_time, End_Time = end_time))
+            db.session.commit()
+            if event.rowcount == 0:
+                return jsonify({'success' : False})
+            else:
+                return jsonify({"success": False})
         except:
             return jsonify({'success': False})
-        if event.rowcount == 0:
-            return jsonify({'success' : False})    
-        else:
-            db.session.commit()
-            return jsonify({'success' : True})
     
 @app.route('/api/delete_event', methods = ['GET', 'POST'])
 def delete_event():
@@ -166,13 +167,13 @@ def delete_event():
 
         try:
             delete_event = db.session.execute(delete(User_Events).where(User_Events.User_ID == user_id).where(User_Events.Event_ID == event_id))
+            db.session.commit()
+            if delete_event.rowcount == 0:
+                return jsonify({'success' : False})
+            else:
+                return jsonify({"success": False})
         except:
             return jsonify({'success': False})
-        if delete_event.rowcount == 0:
-            return jsonify({'success' : False})
-        else:
-            db.session.commit()
-            return jsonify({'success' : True})
 
 #group free times and retrieve user events endpoints
 @app.route("/api/retrieve_group_free_times", methods = ["GET", "POST"])
@@ -292,11 +293,12 @@ def addToGroup():
         try:
             enable_foreign_key_constraint()
             db.session.execute(text("INSERT INTO Groups_Users (User_ID, Group_ID) VALUES (:User_ID, :Group_ID)"), {'User_ID': user_id, 'Group_ID': group_id})
+            db.session.commit()
+            return jsonify({'success': True})
         except:
             return jsonify({'success': False})
-        db.session.commit()
-        return jsonify({'success': True})
-
+        
+       
 @app.route('/api/delete_user_group', methods=['GET', 'POST'])
 def removeFromGroup():
     data = request.json
@@ -311,10 +313,13 @@ def removeFromGroup():
         return jsonify({'success': False})
     else:
         user_ID = user.User_ID
-        db.session.execute(text("DELETE FROM Groups_Users WHERE User_ID=:user_id AND Group_ID = :group_id"),
+        try:
+            db.session.execute(text("DELETE FROM Groups_Users WHERE User_ID=:user_id AND Group_ID = :group_id"),
                            {'user_id': user_ID, 'group_id': group_id})
-        db.session.commit()
-    return jsonify({'success': True})
+            db.session.commit()
+            return jsonify({'success': True})
+        except:
+            return jsonify({"success": False})
 
 
 if __name__ == "__main__":
