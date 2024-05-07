@@ -74,23 +74,23 @@ export default function CreateAccount() {
             />
           </div>
           <div>
-            <div>
-              <div className="mb-2 block">
-                <Label
-                  className="text-black"
-                  htmlFor="lastname"
-                  value="Your Last Name"
-                />
-              </div>
-              <TextInput
-                className="ring-2 rounded-lg ring-black"
-                id="lastname"
-                type="lastname"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
+            <div className="mb-2 block">
+              <Label
+                className="text-black"
+                htmlFor="lastname"
+                value="Your Last Name"
               />
             </div>
+            <TextInput
+              className="ring-2 rounded-lg ring-black"
+              id="lastname"
+              type="lastname"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+          </div>
+          <div>
             <div className="mb-2 block">
               <Label
                 className="text-black"
