@@ -116,20 +116,15 @@ def create_event():
             if user_id is None or event_name is None or start_time is None or end_time is None:
                 return jsonify({"success":False})
 
-            calendar_event = db.session.scalars(select(User_Events).where(User_Events.User_ID == user_id).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
-
-            if calendar_event is None:
-                enable_foreign_key_constraint()
-                event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
-                try:
-                    db.session.add(event_to_add)
-                    db.session.commit()
-                except:
-                    return jsonify({'success': False})
-                
-                return jsonify({'success' : True})    
-            else:
-                return jsonify({'success' : False})
+            enable_foreign_key_constraint()
+            event_to_add = User_Events(User_ID = user_id, Event_Name = event_name, Start_Time = start_time, End_Time = end_time)
+            try:
+                db.session.add(event_to_add)
+                db.session.commit()
+            except:
+                return jsonify({'success': False})
+            
+            return jsonify({'success' : True})    
 
 @app.route('/api/edit_event', methods = ['GET', 'POST'])
 def edit_event():
@@ -164,7 +159,6 @@ def delete_event():
 
         if event_id is None or user_id is None:
             return jsonify({"success":False})
-
         try:
             delete_event = db.session.execute(delete(User_Events).where(User_Events.User_ID == user_id).where(User_Events.Event_ID == event_id))
             db.session.commit()
