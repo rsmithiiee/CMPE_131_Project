@@ -5,7 +5,6 @@ from sqlite3 import IntegrityError
 from sqlalchemy import select, between, or_, update, delete, text
 from argon2 import PasswordHasher
 from algorithm import superfn
-import json
 
 #initialize flask instance
 app = Flask(__name__)
@@ -117,9 +116,6 @@ def create_event():
             if user_id is None or event_name is None or start_time is None or end_time is None:
                 return jsonify({"success":False})
 
-            if not (user_id or event_name or start_time or end_time):
-                return jsonify({"success":False})
-            
             calendar_event = db.session.scalars(select(User_Events).where(User_Events.User_ID == user_id).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
 
             if calendar_event is None:
