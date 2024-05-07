@@ -28,6 +28,10 @@ def retrieve_user_info():
     if request.method == 'POST':
         data = request.json
         username = data.get('username')
+
+        if username is None:
+            return jsonify({"success":False})
+        
         userObj = db.session.scalars(select(Users).where(Users.Username == username)).first()
         if userObj is None:
             return jsonify({'success': False})
@@ -54,6 +58,9 @@ def handle_login():
             username = data.get('username')
             password = data.get('password')
 
+            if username is None or password is None:
+                return jsonify({"success":False})
+
             ph = PasswordHasher()
             stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
             if stmt is None:
@@ -78,6 +85,9 @@ def handle_create_account():
         first_name = data.get('first_name')
         last_name = data.get('last_name')
         password = data.get('password')
+
+        if username is None or first_name is None or last_name is None or password is None:
+            return jsonify({"success":False})
         
         stmt = db.session.scalars(select(Users).where(Users.Username == username)).first()
         if stmt is None:
@@ -104,6 +114,12 @@ def create_event():
             start_time = data.get('start_time')
             end_time = data.get('end_time')
 
+            if user_id is None or event_name is None or start_time is None or end_time is None:
+                return jsonify({"success":False})
+
+            if not (user_id or event_name or start_time or end_time):
+                return jsonify({"success":False})
+            
             calendar_event = db.session.scalars(select(User_Events).where(User_Events.User_ID == user_id).where(or_(between(User_Events.Start_Time, start_time, end_time), between(User_Events.End_Time, start_time, end_time)))).first()
 
             if calendar_event is None:
@@ -128,6 +144,9 @@ def edit_event():
         start_time = data.get("start_time")
         end_time = data.get("end_time")
 
+        if event_id is None or user_id is None or event_name is None or start_time is None or end_time is None:
+            return jsonify({"success":False})
+
         enable_foreign_key_constraint()
         try:
             event = db.session.execute(update(User_Events).where(User_Events.Event_ID == event_id).where(User_Events.User_ID == user_id).values(Event_Name = event_name, Start_Time = start_time, End_Time = end_time))
@@ -145,6 +164,9 @@ def delete_event():
         data = request.json
         event_id = data.get("event_id")
         user_id = data.get("user_id")
+
+        if event_id is None or user_id is None:
+            return jsonify({"success":False})
 
         try:
             delete_event = db.session.execute(delete(User_Events).where(User_Events.User_ID == user_id).where(User_Events.Event_ID == event_id))
@@ -164,6 +186,9 @@ def retrieve_group_free_times():
         start_time = data.get("start_time")
         end_time = data.get("end_time")
         group_id = data.get("group_id")
+
+        if start_time is None or end_time is None or group_id is None:
+            return jsonify({"success":False})
 
         #list of tuples to store user events
         user_events = []
@@ -199,6 +224,9 @@ def retrieve_user_events():
         end_time = data.get("end_time")
         user_id = data.get("user_id")
 
+        if user_id is None:
+            return jsonify({"success":False})
+
         #list to store json objects for each events
         user_events = []
         
@@ -228,6 +256,10 @@ def create_group():
         data = request.json
         user_id = data.get('user_id')
         group_name = data.get('group_name')
+
+        if user_id is None or group_name is None:
+            return jsonify({"success":False})
+
         group = Groups(Group_Name=group_name)
         enable_foreign_key_constraint()
         try:
@@ -250,6 +282,10 @@ def addToGroup():
         data = request.json
         name = data.get('username')
         group_id = data.get('group_id')
+
+        if name is None or group_id is None:
+            return jsonify({"success":False})
+
         user = db.session.scalars(select(Users).where(Users.Username == name)).first()
         if user is None:
             return jsonify({'success': False})
@@ -271,6 +307,10 @@ def removeFromGroup():
     data = request.json
     name = data.get('username')
     group_id = data.get('group_id')
+
+    if name is None or group_id is None:
+        return jsonify({"success":False})
+
     user = db.session.scalars(select(Users).where(Users.Username == name)).first()
     if user is None or group_id is None:
         return jsonify({'success': False})
